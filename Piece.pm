@@ -1,4 +1,4 @@
-# $Id: Piece.pm,v 1.3 2001/11/15 07:19:18 matt Exp $
+# $Id: Piece.pm,v 1.6 2002/05/24 20:00:32 matt Exp $
 
 package Time::Piece;
 
@@ -22,7 +22,7 @@ use UNIVERSAL qw(isa);
     ':override' => 'internal',
     );
 
-$VERSION = '1.01';
+$VERSION = '1.03';
 
 bootstrap Time::Piece $VERSION;
 
@@ -225,21 +225,12 @@ sub tzoffset {
 
     my $epoch = $time->[c_epoch];
 
-    my $j = sub { # Tweaked Julian day number algorithm.
+    my $j = sub {
 
         my ($s,$n,$h,$d,$m,$y) = @_; $m += 1; $y += 1900;
 
-        # Standard Julian day number algorithm without constant.
-        #
-        my $y1 = $m > 2 ? $y : $y - 1;
+        $time->_jd($y, $m, $d, $h, $n, $s);
 
-        my $m1 = $m > 2 ? $m + 1 : $m + 13;
-
-        my $day = int(365.25 * $y1) + int(30.6001 * $m1) + $d;
-
-        # Modify to include hours/mins/secs in floating portion.
-        #
-        return $day + ($h + ($n + $s / 60) / 60) / 24;
     };
 
     # Compute floating offset in hours.
@@ -289,24 +280,58 @@ sub datetime {
     return join($seps{T}, $time->date($seps{date}), $time->time($seps{time}));
 }
 
-# taken from Time::JulianDay
+
+
+# Julian Day is always calculated for UT regardless
+# of local time
 sub julian_day {
     my $time = shift;
-    my ($year, $month, $day) = ($time->year, $time->mon, $time->mday);
-    my ($tmp, $secs);
+    # Correct for localtime
+    $time = &gmtime( $time->epoch ) if $time->[c_islocal];
 
-    $tmp = $day - 32075
-      + 1461 * ( $year + 4800 - ( 14 - $month ) / 12 )/4
-      + 367 * ( $month - 2 + ( ( 14 - $month ) / 12 ) * 12 ) / 12
-      - 3 * ( ( $year + 4900 - ( 14 - $month ) / 12 ) / 100 ) / 4
-      ;
+    # Calculate the Julian day itself
+    my $jd = $time->_jd( $time->year, $time->mon, $time->mday,
+                        $time->hour, $time->min, $time->sec);
 
-    return $tmp;
+    return $jd;
 }
 
 # Hi Dominus!
+# MJD is defined as JD - 2400000.5 days
 sub mjd {
     return shift->julian_day - 2_400_000.5;
+}
+
+# Internal calculation of Julian date. Needed here so that
+# both tzoffset and mjd/jd methods can share the code
+# Algorithm from Hatcher 1984 (QJRAS 25, 53-55), and
+#  Hughes et al, 1989, MNRAS, 238, 15
+# See: http://adsabs.harvard.edu/cgi-bin/nph-bib_query?bibcode=1989MNRAS.238.1529H&db_key=AST
+# for more details
+
+sub _jd {
+    my $self = shift;
+    my ($y, $m, $d, $h, $n, $s) = @_;
+
+    # Adjust input parameters according to the month
+    $y = ( $m > 2 ? $y : $y - 1);
+    $m = ( $m > 2 ? $m - 3 : $m + 9);
+
+    # Calculate the Julian Date (assuming Julian calendar)
+    my $J = int( 365.25 *( $y + 4712) )
+      + int( (30.6 * $m) + 0.5)
+        + 59
+          + $d
+            - 0.5;
+
+    # Calculate the Gregorian Correction (since we have Gregorian dates)
+    my $G = 38 - int( 0.75 * int(49+($y/100)));
+
+    # Calculate the actual Julian Date
+    my $JD = $J + $G;
+
+    # Modify to include hours/mins/secs in floating portion.
+    return $JD + ($h + ($n + $s / 60) / 60) / 24;
 }
 
 sub week {
@@ -530,7 +555,7 @@ following methods are available on the object:
     $t->tzoffset            # timezone offset in a Time::Seconds object
 
     $t->julian_day          # number of days since Julian period began
-    $t->mjd                 # modified Julian day
+    $t->mjd                 # modified Julian date (JD-2400000.5 days)
 
     $t->week                # week number (ISO 8601)
 

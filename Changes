@@ -1,6 +1,11 @@
 
 Time::Piece Changes
 
+1.03
+    - Updated MJD stuff (Tim Jeness)
+    - Added compare tests
+    - Ported test suite to Test.pm finally
+
 1.01
     - Added cs_sec and cs_mon to Time::Seconds so that
       old Time::Object installs still work (except for add())

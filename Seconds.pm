@@ -1,8 +1,9 @@
-# $Id: Seconds.pm,v 1.5 2000/08/01 12:31:30 matt Exp $
+# $Id: Seconds.pm,v 1.9 2002/04/16 11:08:58 matt Exp $
 
 package Time::Seconds;
 use strict;
-use vars qw/@EXPORT @ISA @EXPORT_OK/;
+use vars qw/@EXPORT @EXPORT_OK @ISA/;
+use UNIVERSAL qw(isa);
 
 @ISA = 'Exporter';
 
@@ -12,7 +13,9 @@ use vars qw/@EXPORT @ISA @EXPORT_OK/;
 		ONE_DAY 
 		ONE_WEEK 
 		ONE_MONTH
+                ONE_REAL_MONTH
 		ONE_YEAR
+                ONE_REAL_YEAR
 		ONE_FINANCIAL_MONTH
 		LEAP_YEAR 
 		NON_LEAP_YEAR
@@ -25,7 +28,9 @@ use constant ONE_HOUR => 3_600;
 use constant ONE_DAY => 86_400;
 use constant ONE_WEEK => 604_800;
 use constant ONE_MONTH => 2_629_744; # ONE_YEAR / 12
+use constant ONE_REAL_MONTH => '1M';
 use constant ONE_YEAR => 31_556_930; # 365.24225 days
+use constant ONE_REAL_YEAR  => '1Y';
 use constant ONE_FINANCIAL_MONTH => 2_592_000; # 30 days
 use constant LEAP_YEAR => 31_622_400; # 366 * ONE_DAY
 use constant NON_LEAP_YEAR => 31_536_000; # 365 * ONE_DAY
@@ -39,63 +44,65 @@ use overload
 		'""' => \&seconds,
 		'<=>' => \&compare,
 		'+' => \&add,
-		'-' => \&subtract,
-		'-=' => \&subtract_from,
-		'+=' => \&add_to,
-		'=' => \&copy;
+                '-' => \&subtract,
+                '-=' => \&subtract_from,
+                '+=' => \&add_to,
+                '=' => \&copy;
 
 sub new {
-	my $class = shift;
-	my ($val) = @_;
-	$val = 0 unless defined $val;
-	bless \$val, $class;
+    my $class = shift;
+    my ($val) = @_;
+    $val = 0 unless defined $val;
+    bless \$val, $class;
 }
 
 sub _get_ovlvals {
-	my ($lhs, $rhs, $reverse) = @_;
-	$lhs = $lhs->seconds;
-	
-	if (UNIVERSAL::isa($rhs, 'Time::Seconds')) {
-		$rhs = $rhs->seconds;
-	}
-	elsif (ref($rhs)) {
-		die "Can't use non Seconds object in operator overload";
-	}
-	
-	if ($reverse) {
-		return $rhs, $lhs;
-	}
-	
-	return $lhs, $rhs;
+    my ($lhs, $rhs, $reverse) = @_;
+    $lhs = $lhs->seconds;
+
+    if (UNIVERSAL::isa($rhs, 'Time::Seconds')) {
+        $rhs = $rhs->seconds;
+    }
+    elsif (ref($rhs)) {
+        die "Can't use non Seconds object in operator overload";
+    }
+
+    if ($reverse) {
+        return $rhs, $lhs;
+    }
+
+    return $lhs, $rhs;
 }
 
 sub compare {
-	my ($lhs, $rhs) = _get_ovlvals(@_);
-	return $lhs <=> $rhs;
+    my ($lhs, $rhs) = _get_ovlvals(@_);
+    return $lhs <=> $rhs;
 }
 
 sub add {
-	my ($lhs, $rhs) = _get_ovlvals(@_);
-	return Time::Seconds->new($lhs + $rhs);
+    my ($lhs, $rhs) = _get_ovlvals(@_);
+    return Time::Seconds->new($lhs + $rhs);
 }
 
 sub add_to {
-	my $lhs = shift;
-	my $rhs = shift;
-	$rhs = $rhs->seconds if UNIVERSAL::isa($rhs, 'Time::Seconds');
-	$$lhs += $rhs;
+    my $lhs = shift;
+    my $rhs = shift;
+    $rhs = $rhs->seconds if UNIVERSAL::isa($rhs, 'Time::Seconds');
+    $$lhs += $rhs;
+    return $lhs;
 }
 
 sub subtract {
-	my ($lhs, $rhs) = _get_ovlvals(@_);
-	return Time::Seconds->new($lhs - $rhs);
+    my ($lhs, $rhs) = _get_ovlvals(@_);
+    return Time::Seconds->new($lhs - $rhs);
 }
 
 sub subtract_from {
-	my $lhs = shift;
-	my $rhs = shift;
-	$rhs = $rhs->seconds if UNIVERSAL::isa($rhs, 'Time::Seconds');
-	$$lhs -= $rhs;
+    my $lhs = shift;
+    my $rhs = shift;
+    $rhs = $rhs->seconds if UNIVERSAL::isa($rhs, 'Time::Seconds');
+    $$lhs -= $rhs;
+    return $lhs;
 }
 
 sub copy {
@@ -103,45 +110,43 @@ sub copy {
 }
 
 sub seconds {
-	my $s = shift;
-	$$s;
+    my $s = shift;
+    return $$s;
 }
 
 sub minutes {
-	my $s = shift;
-	$$s / 60;
+    my $s = shift;
+    return $$s / 60;
 }
 
 sub hours {
-	my $s = shift;
-	$s->minutes / 60;
+    my $s = shift;
+    $s->minutes / 60;
 }
 
 sub days {
-	my $s = shift;
-	$s->hours / 24;
+    my $s = shift;
+    $s->hours / 24;
 }
 
 sub weeks {
-	my $s = shift;
-	$s->days / 7;
+    my $s = shift;
+    $s->days / 7;
 }
 
 sub months {
-	my $s = shift;
-	$s->days / 30.4368541;
+    my $s = shift;
+    $s->days / 30.4368541;
 }
 
 sub financial_months {
-	my $s = shift;
-	$s->days / 30;
+    my $s = shift;
+    $s->days / 30;
 }
 
-*f_months = \&financial_months;
-
 sub years {
-	my $s = shift;
-	$s->days / 365.24225;
+    my $s = shift;
+    $s->days / 365.24225;
 }
 
 1;
@@ -177,6 +182,9 @@ Time::Seconds also exports the following constants:
     ONE_WEEK
     ONE_HOUR
     ONE_MINUTE
+	ONE_MONTH
+	ONE_YEAR
+	ONE_FINANCIAL_MONTH
     LEAP_YEAR
     NON_LEAP_YEAR
 
@@ -193,15 +201,21 @@ The following methods are available:
     $val->hours;
     $val->days;
     $val->weeks;
+	$val->months;
+	$val->financial_months; # 30 days
     $val->years;
 
 The methods make the assumption that there are 24 hours in a day, 7 days in
-a week, and 365.24225 days in a year (from The Calendar FAQ at 
-http://www.tondering.dk/claus/calendar.html)
+a week, 365.24225 days in a year and 12 months in a year.
+(from The Calendar FAQ at http://www.tondering.dk/claus/calendar.html)
 
 =head1 AUTHOR
 
 Matt Sergeant, matt@sergeant.org
+
+Tobias Brox, tobiasb@tobiasb.funcom.com
+
+Balázs Szabó (dLux), dlux@kapu.hu
 
 =head1 LICENSE
 
