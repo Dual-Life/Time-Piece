@@ -1,0 +1,7 @@
+
+Time::Piece Changes
+
+1.01
+    - Added cs_sec and cs_mon to Time::Seconds so that
+      old Time::Object installs still work (except for add())
+

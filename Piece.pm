@@ -1,4 +1,4 @@
-# $Id: Piece.pm,v 1.2 2001/10/22 12:37:11 matt Exp $
+# $Id: Piece.pm,v 1.3 2001/11/15 07:19:18 matt Exp $
 
 package Time::Piece;
 
@@ -22,7 +22,7 @@ use UNIVERSAL qw(isa);
     ':override' => 'internal',
     );
 
-$VERSION = '1.00';
+$VERSION = '1.01';
 
 bootstrap Time::Piece $VERSION;
 
@@ -124,7 +124,7 @@ sub min {
     $time->[c_min];
 }
 
-*minute = \&minute;
+*minute = \&min;
 
 sub hour {
     my $time = shift;
