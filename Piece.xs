@@ -47,7 +47,7 @@
 
 #ifdef STRUCT_TM_HASZONE
 static void
-init_tm(struct tm *ptm)        /* see mktime, strftime and asctime    */
+my_init_tm(struct tm *ptm)        /* see mktime, strftime and asctime    */
 {
     Time_t now;
     (void)time(&now);
@@ -55,15 +55,15 @@ init_tm(struct tm *ptm)        /* see mktime, strftime and asctime    */
 }
 
 #else
-# define init_tm(ptm)
+# define my_init_tm(ptm)
 #endif
 
 /*
- * mini_mktime - normalise struct tm values without the localtime()
+ * my_mini_mktime - normalise struct tm values without the localtime()
  * semantics (and overhead) of mktime().
  */
 static void
-mini_mktime(struct tm *ptm)
+my_mini_mktime(struct tm *ptm)
 {
     int yearday;
     int secs;
@@ -819,7 +819,7 @@ _strftime(fmt, sec, min, hour, mday, mon, year, wday = -1, yday = -1, isdst = -1
         char tmpbuf[128];
         struct tm mytm;
         int len;
-        init_tm(&mytm);    /* XXX workaround - see init_tm() above */
+        my_init_tm(&mytm);    /* XXX workaround - see my_init_tm() above */
         mytm.tm_sec = sec;
         mytm.tm_min = min;
         mytm.tm_hour = hour;
@@ -829,7 +829,7 @@ _strftime(fmt, sec, min, hour, mday, mon, year, wday = -1, yday = -1, isdst = -1
         mytm.tm_wday = wday;
         mytm.tm_yday = yday;
         mytm.tm_isdst = isdst;
-        mini_mktime(&mytm);
+        my_mini_mktime(&mytm);
         len = strftime(tmpbuf, sizeof tmpbuf, fmt, &mytm);
         /*
         ** The following is needed to handle to the situation where 
@@ -902,7 +902,7 @@ _strptime ( string, format )
            warn("garbage at end of string in strptime: %s", remainder);
        }
 	  
-       mini_mktime(&mytm);
+       my_mini_mktime(&mytm);
 
   /* warn("tm: %d-%d-%d %d:%d:%d\n", mytm.tm_year, mytm.tm_mon, mytm.tm_mday, mytm.tm_hour, mytm.tm_min, mytm.tm_sec); */
 	  

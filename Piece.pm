@@ -1,4 +1,4 @@
-# $Id: Piece.pm,v 1.10 2002/06/19 12:16:33 matt Exp $
+# $Id: Piece.pm,v 1.13 2002/06/20 06:41:02 matt Exp $
 
 package Time::Piece;
 
@@ -23,7 +23,7 @@ use UNIVERSAL qw(isa);
     ':override' => 'internal',
     );
 
-$VERSION = '1.06';
+$VERSION = '1.07';
 
 bootstrap Time::Piece $VERSION;
 
@@ -92,7 +92,8 @@ sub parse {
 sub _mktime {
     my ($time, $islocal) = @_;
     if (ref($time)) {
-	return wantarray ? @$time : bless [@$time, undef, $islocal], 'Time::Piece';
+	$time->[c_epoch] = undef;
+	return wantarray ? @$time : bless [@$time, $islocal], 'Time::Piece';
     }
     my @time = $islocal ?
             CORE::localtime($time)
@@ -349,10 +350,20 @@ sub _jd {
 
 sub week {
     my $self = shift;
-    # taken from the Calendar FAQ
-    use integer;
+
     my $J  = $self->julian_day;
-    # $J += ($self->tzoffset/(24*3600));
+    # Julian day is independent of time zone so add on tzoffset
+    # if we are using local time here since we want the week day
+    # to reflect the local time rather than UTC
+    $J += ($self->tzoffset/(24*3600)) if $self->[c_islocal];
+
+    # Now that we have the Julian day including fractions
+    # convert it to an integer Julian Day Number using nearest
+    # int (since the day changes at midday we oconvert all Julian
+    # dates to following midnight).
+    $J = int($J+0.5);
+
+    use integer;
     my $d4 = ((($J + 31741 - ($J % 7)) % 146097) % 36524) % 1461;
     my $L  = $d4 / 1460;
     my $d1 = (($d4 - $L) % 365) + $L;

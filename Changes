@@ -1,6 +1,9 @@
 
 Time::Piece Changes
 
+1.07
+    - Fix for ->week method
+
 1.06
     - Fix for Solaris pre-2.8
     - Compilation checked on:

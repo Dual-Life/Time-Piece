@@ -1,6 +1,6 @@
 use Test;
-BEGIN { plan tests => 76 }
-
+BEGIN { plan tests => 83 }
+my $is_win32 = ($^O =~ /Win32/);
 use Time::Piece;
 ok(1);
 
@@ -54,8 +54,8 @@ ok($t->week == 9);
 # sometimes it's the century (and whether for 2000 the century is
 # 20 or 19, is fun, too..as far as I can read SUSv2 it should be 20.)
 ok($t->strftime('%d') == 29);
-ok($t->strftime('%D') eq '02/29/00'); # Yech!
-ok($t->strftime('%e') eq '29'); # should test with < 10
+skip($is_win32, $t->strftime('%D') eq '02/29/00'); # Yech!
+skip($is_win32, $t->strftime('%e') eq '29'); # should test with < 10
 ok($t->strftime('%H') eq '12'); # should test with < 10
 
  # %h is locale-dependent
@@ -67,9 +67,9 @@ ok($t->strftime('%M') eq '34'); # should test with < 10
 # %p, %P, and %r are not widely implemented,
 # and are possibly unportable (am or AM or a.m., and so on)
 
-ok($t->strftime('%R') eq '12:34'); # should test with > 12
+skip($is_win32, $t->strftime('%R') eq '12:34'); # should test with > 12
 ok($t->strftime('%S') eq '56'); # should test with < 10
-ok($t->strftime('%T') eq '12:34:56'); # < 12 and > 12
+skip($is_win32, $t->strftime('%T') eq '12:34:56'); # < 12 and > 12
 
 # There are bugs in the implementation of %u in many platforms.
 # (e.g. Linux seems to think, despite the man page, that %u
@@ -152,3 +152,13 @@ ok(Time::Piece::_is_leap_year(1904));
 ok(Time::Piece->strptime("1945", "%Y")->year, 1945, "Year is 1945?");
 
 ok(Time::Piece->strptime("13:00", "%H:%M")->hour, 13, "Hour is 13?");
+
+# Test week number
+# [from Ilya Martynov]
+ok(Time::Piece->strptime("2002/06/10 0", '%Y/%m/%d %H')->week,24);
+ok(Time::Piece->strptime("2002/06/10 1", '%Y/%m/%d %H')->week,24);
+ok(Time::Piece->strptime("2002/06/10 2", '%Y/%m/%d %H')->week,24);
+ok(Time::Piece->strptime("2002/06/10 12", '%Y/%m/%d %H')->week,24);
+ok(Time::Piece->strptime("2002/06/10 13", '%Y/%m/%d %H')->week,24);
+ok(Time::Piece->strptime("2002/06/10 14", '%Y/%m/%d %H')->week,24);
+ok(Time::Piece->strptime("2002/06/10 23", '%Y/%m/%d %H')->week,24);
