@@ -1,0 +1,8 @@
+MANIFEST
+Makefile.PL
+Piece.pm
+Piece.xs
+Seconds.pm
+t/base.t
+t/core.t
+README
