@@ -1,17 +1,18 @@
-# $Id: Piece.pm,v 1.19 2003/02/10 17:43:24 matt Exp $
+# $Id: Piece.pm,v 1.21 2003/06/10 12:33:35 matt Exp $
 
 package Time::Piece;
 
 use strict;
 use vars qw($VERSION @ISA @EXPORT %EXPORT_TAGS);
 
-require Exporter;
-require DynaLoader;
+use Exporter ();
+use DynaLoader ();
 use Time::Seconds;
 use Carp;
 use Time::Local;
 use UNIVERSAL qw(isa);
 use DateTime;
+use DateTime::Format::Strptime;
 
 @ISA = qw(Exporter DynaLoader DateTime);
 
@@ -24,9 +25,9 @@ use DateTime;
     ':override' => 'internal',
     );
 
-$VERSION = '2.00_00';
+$VERSION = '2.00_01';
 
-bootstrap Time::Piece $VERSION;
+__PACKAGE__->bootstrap($VERSION);
 
 my $DATE_SEP = '-';
 my $TIME_SEP = ':';
@@ -38,28 +39,34 @@ my @FULLDAY_LIST = qw(Sunday Monday Tuesday Wednesday Thursday Friday Saturday);
 
 sub localtime {
     my $time = shift || time;
-    __PACKAGE__->from_epoch(epoch => $time);
+    __PACKAGE__->from_epoch( epoch => $time );
 }
 
 sub gmtime {
     my $time = shift || time;
-    my $ret = __PACKAGE__->from_epoch(epoch => $time);
-    $ret->set_time_zone(0);
-    return $ret;
+    __PACKAGE__->from_epoch( epoch => $time, time_zone => "UTC" );
 }
 
 sub parse {
     my $proto = shift;
     my $class = ref($proto) || $proto;
-    my @components;
+    my @parts;
     if (@_ > 1) {
-        @components = @_;
+        @parts = @_;
     }
     else {
-        @components = shift =~ /(\d+)$DATE_SEP(\d+)$DATE_SEP(\d+)(?:(?:T|\s+)(\d+)$TIME_SEP(\d+)(?:$TIME_SEP(\d+)))/;
-        @components = reverse(@components[0..5]);
+        @parts = shift =~ /(\d+)$DATE_SEP(\d+)$DATE_SEP(\d+)(?:(?:T|\s+)(\d+)$TIME_SEP(\d+)(?:$TIME_SEP(\d+)))/;
+        @parts = reverse(@parts[0..5]);
     }
-    return $class->new(epoch => _strftime("%s", @components));
+    $class->new(
+        second => $parts[0],
+        minute => $parts[1],
+        hour => $parts[2],
+        day => $parts[3],
+        month => $parts[4] + 1,
+        year => $parts[5],
+        time_zone => "UTC", # utc
+        );
 }
 
 sub import {
@@ -165,74 +172,20 @@ sub yday {
 *day_of_year = \&yday;
 
 sub isdst {
-    my $t = shift;
-    return 0 if $t->time_zone->is_utc;
-    return $t->is_dst;
+    shift->is_dst;
 }
 
 *daylight_savings = \&isdst;
 
 # Thanks to Tony Olekshy <olekshy@cs.ualberta.ca> for this algorithm
 sub tzoffset {
-    my $time = shift;
-    return Time::Seconds->new(seconds => $time->offset());
-}
-
-sub _is_leap_year {
-    my $year = shift;
-    my $time = DateTime->new(year => $year);
-    return $time->is_leap_year;
+    shift->offset;
 }
 
 # Julian Day is always calculated for UT regardless
 # of local time
 sub julian_day {
-    my $time = shift;
-    # Correct for localtime
-    $time = &gmtime( $time->epoch ) if $time->offset != 0;
-    
-    # Calculate the Julian day itself
-    my $jd = $time->_jd( $time->year, $time->mon, $time->mday,
-                        $time->hour, $time->min, $time->sec);
-    
-    return $jd;
-}
-
-# MJD is defined as JD - 2400000.5 days
-sub mjd {
-    return shift->julian_day - 2_400_000.5;
-}
-
-# Internal calculation of Julian date. Needed here so that
-# both tzoffset and mjd/jd methods can share the code
-# Algorithm from Hatcher 1984 (QJRAS 25, 53-55), and
-#  Hughes et al, 1989, MNRAS, 238, 15
-# See: http://adsabs.harvard.edu/cgi-bin/nph-bib_query?bibcode=1989MNRAS.238.1529H&db_key=AST
-# for more details
-
-sub _jd {
-    my $self = shift;
-    my ($y, $m, $d, $h, $n, $s) = @_;
-
-    # Adjust input parameters according to the month
-    $y = ( $m > 2 ? $y : $y - 1);
-    $m = ( $m > 2 ? $m - 3 : $m + 9);
-
-    # Calculate the Julian Date (assuming Julian calendar)
-    my $J = int( 365.25 *( $y + 4712) )
-      + int( (30.6 * $m) + 0.5)
-        + 59
-          + $d
-            - 0.5;
-
-    # Calculate the Gregorian Correction (since we have Gregorian dates)
-    my $G = 38 - int( 0.75 * int(49+($y/100)));
-
-    # Calculate the actual Julian Date
-    my $JD = $J + $G;
-
-    # Modify to include hours/mins/secs in floating portion.
-    return $JD + ($h + ($n + $s / 60) / 60) / 24;
+    shift->jd;
 }
 
 sub week {
@@ -242,14 +195,14 @@ sub week {
     # Julian day is independent of time zone so add on tzoffset
     # if we are using local time here since we want the week day
     # to reflect the local time rather than UTC
-    $J += ($self->offset/(24*3600)) if $self->offset != 0;
-    
+    $J += ($self->tzoffset/(24*3600));
+
     # Now that we have the Julian day including fractions
     # convert it to an integer Julian Day Number using nearest
     # int (since the day changes at midday we oconvert all Julian
     # dates to following midnight).
     $J = int($J+0.5);
-    
+
     use integer;
     my $d4 = ((($J + 31741 - ($J % 7)) % 146097) % 36524) % 1461;
     my $L  = $d4 / 1460;
@@ -278,18 +231,14 @@ sub strptime {
     my $time = shift;
     my $string = shift;
     my $format = @_ ? shift(@_) : "%a, %d %b %Y %H:%M:%S %Z";
-    my @vals = _strptime($string, $format);
-    # warn(sprintf("got vals: L:%d E:%d I:%d YD:%d WD:%d %d-%d-%d %d:%d:%d\n", reverse(@vals)));
+    my $Strp = new DateTime::Format::Strptime(
+                    pattern     => $format,
+                    language    => 'English',
+                    time_zone   => (ref($time) ? $time->time_zone : 'UTC'),
+                );
     my $class = ref($time) || $time;
-    return $class->new(
-        second => $vals[0],
-        minute => $vals[1],
-        hour => $vals[2],
-        day => $vals[3],
-        month => $vals[4] + 1,
-        year => $vals[5] + 1900,
-        time_zone => (ref($time) ? $time->time_zone : 0),
-        );
+    my $t = bless($Strp->parse_datetime($string), $class);
+    return $t;
 }
 
 sub day_list {
@@ -370,10 +319,6 @@ use overload '""' => \&cdate,
              'cmp' => \&str_compare,
              'fallback' => undef;
 
-sub epoch {
-    shift->strftime("%s");
-}
-             
 sub cdate {
     my $time = shift;
     # Mon Feb 10 17:19:35 2003
@@ -386,6 +331,14 @@ sub str_compare {
         $rhs = "$rhs";
     }
     return $reverse ? $rhs cmp $lhs->cdate : $lhs->cdate cmp $rhs;
+}
+
+sub __is_leap_year {
+    my $year = shift;
+    warn("_is_leap_year($year)");
+    warn("caller: ", caller);
+    my $d = DateTime->new(year => $year, time_zone => "UTC");
+    return $d->is_leap_year;
 }
 
 1;

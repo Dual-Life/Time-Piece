@@ -7,6 +7,7 @@ WriteMakefile(
     'AUTHOR' => 'Matt Sergeant',
     'ABSTRACT_FROM' => 'Piece.pm',
     'PREREQ_PM' => {
-       DateTime => '0.03',
+       DateTime => '0.12',
+       DateTime::Format::Strptime => '1.02',
     },
 );

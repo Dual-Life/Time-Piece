@@ -146,11 +146,11 @@ ok($t->is_leap_year); # should test more with different dates
 
 ok($t->month_last_day, 29); # test more
 
-ok(!Time::Piece::_is_leap_year(1900));
+ok(!Time::Piece->_is_leap_year(1900));
 
-ok(!Time::Piece::_is_leap_year(1901));
+ok(!Time::Piece->_is_leap_year(1901));
 
-ok(Time::Piece::_is_leap_year(1904));
+ok(Time::Piece->_is_leap_year(1904));
 
 ok(Time::Piece->strptime("1945", "%Y")->year, 1945, "Year is 1945?");
 
@@ -158,13 +158,9 @@ ok(Time::Piece->strptime("13:00", "%H:%M")->hour, 13, "Hour is 13?");
 
 # Test week number
 # [from Ilya Martynov]
-ok(Time::Piece->strptime("2002/06/10 0", '%Y/%m/%d %H')->week,24);
-ok(Time::Piece->strptime("2002/06/10 1", '%Y/%m/%d %H')->week,24);
-ok(Time::Piece->strptime("2002/06/10 2", '%Y/%m/%d %H')->week,24);
-ok(Time::Piece->strptime("2002/06/10 12", '%Y/%m/%d %H')->week,24);
-ok(Time::Piece->strptime("2002/06/10 13", '%Y/%m/%d %H')->week,24);
-ok(Time::Piece->strptime("2002/06/10 14", '%Y/%m/%d %H')->week,24);
-ok(Time::Piece->strptime("2002/06/10 23", '%Y/%m/%d %H')->week,24);
+for (0,1,2,12,13,14,23) {
+    ok(Time::Piece->strptime("2002/06/10 $_", "%Y/%m/%d %H")->week, 24);
+}
 
 # Test that strptime populates all relevant fields
 ok(Time::Piece->strptime("2002/07/10", '%Y/%m/%d')->wday,4);
