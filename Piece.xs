@@ -4,6 +4,9 @@
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
+#ifdef sun
+#define _STRPTIME_DONTZERO
+#endif
 #include <time.h>
 #ifdef __cplusplus
 }
@@ -904,6 +907,7 @@ TmPc_strptime ( string, format )
          if (*remainder != '\0') {
              warn("garbage at end of string in strptime: %s", remainder);
          }
+         mytm->tm_isdst = -1; /* remove isdst */
          # now get epoch secs
          RETVAL = mktime(mytm);
       }

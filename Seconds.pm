@@ -1,4 +1,4 @@
-# $Id: Seconds.pm,v 1.9 2002/04/16 11:08:58 matt Exp $
+# $Id: Seconds.pm,v 1.10 2002/06/13 07:18:12 matt Exp $
 
 package Time::Seconds;
 use strict;
@@ -40,6 +40,7 @@ use constant cs_sec => 0;
 use constant cs_mon => 1;
 
 use overload 
+                'fallback' => 'undef',
 		'0+' => \&seconds,
 		'""' => \&seconds,
 		'<=>' => \&compare,
@@ -215,7 +216,7 @@ Matt Sergeant, matt@sergeant.org
 
 Tobias Brox, tobiasb@tobiasb.funcom.com
 
-Balázs Szabó (dLux), dlux@kapu.hu
+Balï¿½zs Szabï¿½ (dLux), dlux@kapu.hu
 
 =head1 LICENSE
 

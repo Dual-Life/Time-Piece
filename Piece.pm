@@ -1,4 +1,4 @@
-# $Id: Piece.pm,v 1.6 2002/05/24 20:00:32 matt Exp $
+# $Id: Piece.pm,v 1.7 2002/06/13 07:18:12 matt Exp $
 
 package Time::Piece;
 
@@ -22,7 +22,7 @@ use UNIVERSAL qw(isa);
     ':override' => 'internal',
     );
 
-$VERSION = '1.03';
+$VERSION = '1.04';
 
 bootstrap Time::Piece $VERSION;
 
@@ -335,9 +335,11 @@ sub _jd {
 }
 
 sub week {
+    my $self = shift;
     # taken from the Calendar FAQ
     use integer;
-    my $J  = shift->julian_day;
+    my $J  = $self->julian_day;
+    # $J += ($self->tzoffset/(24*3600));
     my $d4 = ((($J + 31741 - ($J % 7)) % 146097) % 36524) % 1461;
     my $L  = $d4 / 1460;
     my $d1 = (($d4 - $L) % 365) + $L;

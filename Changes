@@ -1,6 +1,10 @@
 
 Time::Piece Changes
 
+1.04
+    - Slight fixes to strptime for Solaris and MacOSX
+    - Bug in strptime with daylight savings fixed.
+
 1.03
     - Updated MJD stuff (Tim Jeness)
     - Added compare tests
