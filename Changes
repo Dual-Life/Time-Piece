@@ -1,6 +1,12 @@
 
 Time::Piece Changes
 
+1.08
+    - A number of fixes for strptime
+    - Fixed docs wrt Time::Object references
+    - Fixed docs wrt ->month returning short month name
+    - Added ->fullmonth and ->fullday to get full day names
+
 1.07
     - Fix for ->week method
 

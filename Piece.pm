@@ -1,4 +1,4 @@
-# $Id: Piece.pm,v 1.13 2002/06/20 06:41:02 matt Exp $
+# $Id: Piece.pm,v 1.16 2002/12/22 11:17:48 matt Exp $
 
 package Time::Piece;
 
@@ -23,14 +23,17 @@ use UNIVERSAL qw(isa);
     ':override' => 'internal',
     );
 
-$VERSION = '1.07';
+$VERSION = '1.08';
 
 bootstrap Time::Piece $VERSION;
 
 my $DATE_SEP = '-';
 my $TIME_SEP = ':';
 my @MON_LIST = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
+my @FULLMON_LIST = qw(January February March April May June July
+                      August September October November December);
 my @DAY_LIST = qw(Sun Mon Tue Wed Thu Fri Sat);
+my @FULLDAY_LIST = qw(Sunday Monday Tuesday Wednesday Thursday Friday Saturday);
 
 use constant 'c_sec' => 0;
 use constant 'c_min' => 1;
@@ -162,11 +165,24 @@ sub month {
         return $MON_LIST[$time->[c_mon]];
     }
     else {
-        return $time->strftime('%B');
+        return $time->strftime('%b');
     }
 }
 
 *monname = \&month;
+
+sub fullmonth {
+    my $time = shift;
+    if (@_) {
+        return $_[$time->[c_mon]];
+    }
+    elsif (@FULLMON_LIST) {
+        return $FULLMON_LIST[$time->[c_mon]];
+    }
+    else {
+        return $time->strftime('%B');
+    }
+}
 
 sub year {
     my $time = shift;
@@ -180,7 +196,8 @@ sub _year {
 
 sub yy {
     my $time = shift;
-    $time->[c_year] % 100;
+    my $res = $time->[c_year] % 100;
+    return $res > 9 ? $res : "0$res";
 }
 
 sub wday {
@@ -204,11 +221,24 @@ sub wdayname {
         return $DAY_LIST[$time->[c_wday]];
     }
     else {
-        return $time->strftime('%A');
+        return $time->strftime('%a');
     }
 }
 
 *day = \&wdayname;
+
+sub fullday {
+    my $time = shift;
+    if (@_) {
+        return $_[$time->[c_wday]];
+    }
+    elsif (@FULLDAY_LIST) {
+        return $FULLDAY_LIST[$time->[c_wday]];
+    }
+    else {
+        return $time->strftime('%A');
+    }
+}
 
 sub yday {
     my $time = shift;
@@ -394,6 +424,14 @@ sub month_last_day {
 sub strftime {
     my $time = shift;
     my $format = @_ ? shift(@_) : "%a, %d %b %Y %H:%M:%S %Z";
+    if (!defined $time->[c_wday]) {
+	if ($time->[c_islocal]) {
+            return _strftime($format, CORE::localtime($time->epoch));
+	}
+	else {
+	    return _strftime($format, CORE::gmtime($time->epoch));
+	}
+    }
     return _strftime($format, (@$time)[c_sec..c_isdst]);
 }
 
@@ -471,9 +509,12 @@ use overload
 sub subtract {
     my $time = shift;
     my $rhs = shift;
+    if (UNIVERSAL::isa($rhs, 'Time::Seconds')) {
+        $rhs = $rhs->seconds;
+    }
     die "Can't subtract a date from something!" if shift;
     
-    if (ref($rhs) && $rhs->isa('Time::Piece')) {
+    if (UNIVERSAL::isa($rhs, 'Time::Piece')) {
         return Time::Seconds->new($time->epoch - $rhs->epoch);
     }
     else {
@@ -485,6 +526,9 @@ sub subtract {
 sub add {
     my $time = shift;
     my $rhs = shift;
+    if (UNIVERSAL::isa($rhs, 'Time::Seconds')) {
+        $rhs = $rhs->seconds;
+    }
     croak "Invalid rhs of addition: $rhs" if ref($rhs);
 
     return _mktime(($time->epoch + $rhs), $time->[c_islocal]);
@@ -551,16 +595,18 @@ following methods are available on the object:
     $t->mday                # also available as $t->day_of_month
     $t->mon                 # 1 = January
     $t->_mon                # 0 = January
-    $t->monname             # February
+    $t->monname             # Feb
     $t->month               # same as $t->monname
+    $t->fullmonth           # February
     $t->year                # based at 0 (year 0 AD is, of course 1 BC)
     $t->_year               # year minus 1900
     $t->yy                  # 2 digit year
     $t->wday                # 1 = Sunday
     $t->_wday               # 0 = Sunday
     $t->day_of_week         # 0 = Sunday
-    $t->wdayname            # Tuesday
+    $t->wdayname            # Tue
     $t->day                 # same as wdayname
+    $t->fullday             # Tuesday
     $t->yday                # also available as $t->day_of_year, 0 = Jan 01
     $t->isdst               # also available as $t->daylight_savings
 

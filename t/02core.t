@@ -1,5 +1,5 @@
 use Test;
-BEGIN { plan tests => 83 }
+BEGIN { plan tests => 91 }
 my $is_win32 = ($^O =~ /Win32/);
 use Time::Piece;
 ok(1);
@@ -17,13 +17,16 @@ ok($t->mon, 2);
 ok($t->_mon, 1);
 ok($t->monname, 'Feb');
 ok($t->month, 'Feb');
+ok($t->fullmonth, 'February');
 ok($t->year, 2000);
 ok($t->_year, 100);
+ok($t->yy, '00');
 ok($t->wday == 3);
 ok($t->_wday == 2);
 ok($t->day_of_week == 2);
 ok($t->wdayname eq 'Tue');
 ok($t->day eq 'Tue');
+ok($t->fullday eq 'Tuesday');
 ok($t->yday == 59);
 ok($t->day_of_year == 59);
 
@@ -162,3 +165,10 @@ ok(Time::Piece->strptime("2002/06/10 12", '%Y/%m/%d %H')->week,24);
 ok(Time::Piece->strptime("2002/06/10 13", '%Y/%m/%d %H')->week,24);
 ok(Time::Piece->strptime("2002/06/10 14", '%Y/%m/%d %H')->week,24);
 ok(Time::Piece->strptime("2002/06/10 23", '%Y/%m/%d %H')->week,24);
+
+# Test that strptime populates all relevant fields
+ok(Time::Piece->strptime("2002/07/10", '%Y/%m/%d')->wday,4);
+ok(Time::Piece->strptime("2002/07/10", '%Y/%m/%d')->day_of_week,3);
+ok(Time::Piece->strptime("2002/12/31", '%Y/%m/%d')->yday,364);
+ok(Time::Piece->strptime("2002/07/10", '%Y/%m/%d')->isdst,0);
+ok(Time::Piece->strptime("2000/02/29 12:34:56", '%Y/%m/%d %H:%M:%S')->epoch,951827696);

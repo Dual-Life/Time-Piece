@@ -238,15 +238,12 @@ my_mini_mktime(struct tm *ptm)
     yearday += 14*MONTH_TO_DAYS + 1;
     ptm->tm_yday = jday - yearday;
     /* fix tm_wday if not overridden by caller */
-    if ((unsigned)ptm->tm_wday > 6)
     ptm->tm_wday = (jday + WEEKDAY_BIAS) % 7;
 }
 
-#if (defined(__APPLE__) && defined(__MACH__)) || defined(WIN32) /* Mac OS X */
-#ifdef WIN32
+#if defined(WIN32) /* No strptime on Win32 */
 #define strncasecmp(x,y,n) strnicmp(x,y,n)
 #define alloca _alloca
-#endif
 #include <time.h>
 #include <ctype.h>
 #include <string.h>
@@ -786,7 +783,7 @@ strptime(const char *buf, const char *fmt, struct tm *tm)
 pthread_mutex_lock(&gotgmt_mutex);
 #endif
 
-got_GMT = 0;
+        got_GMT = 0;
 	ret = _strptime(buf, fmt, tm);
 
 #ifdef _THREAD_SAFE
@@ -883,7 +880,7 @@ _strptime ( string, format )
 	char * format
   PREINIT:
        char tmpbuf[128];
-       struct tm mytm, epochtm;
+       struct tm mytm;
        time_t t;
        char * remainder;
        int len;
@@ -906,10 +903,18 @@ _strptime ( string, format )
 
   /* warn("tm: %d-%d-%d %d:%d:%d\n", mytm.tm_year, mytm.tm_mon, mytm.tm_mday, mytm.tm_hour, mytm.tm_min, mytm.tm_sec); */
 	  
-       EXTEND(SP, 6);
+       EXTEND(SP, 11);
        PUSHs(sv_2mortal(newSViv(mytm.tm_sec)));
        PUSHs(sv_2mortal(newSViv(mytm.tm_min)));
        PUSHs(sv_2mortal(newSViv(mytm.tm_hour)));
        PUSHs(sv_2mortal(newSViv(mytm.tm_mday)));
        PUSHs(sv_2mortal(newSViv(mytm.tm_mon)));
        PUSHs(sv_2mortal(newSViv(mytm.tm_year)));
+       PUSHs(sv_2mortal(newSViv(mytm.tm_wday)));
+       PUSHs(sv_2mortal(newSViv(mytm.tm_yday)));
+       /* isdst */
+       PUSHs(sv_2mortal(newSViv(0)));
+       /* epoch */
+       PUSHs(sv_2mortal(newSViv(0)));
+       /* islocal */
+       PUSHs(sv_2mortal(newSViv(0)));

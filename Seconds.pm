@@ -1,4 +1,4 @@
-# $Id: Seconds.pm,v 1.10 2002/06/13 07:18:12 matt Exp $
+# $Id: Seconds.pm,v 1.11 2002/09/08 20:51:38 matt Exp $
 
 package Time::Seconds;
 use strict;
@@ -35,7 +35,7 @@ use constant ONE_FINANCIAL_MONTH => 2_592_000; # 30 days
 use constant LEAP_YEAR => 31_622_400; # 366 * ONE_DAY
 use constant NON_LEAP_YEAR => 31_536_000; # 365 * ONE_DAY
 
-# hacks to make Time::Object compile once again
+# hacks to make Time::Piece compile once again
 use constant cs_sec => 0;
 use constant cs_mon => 1;
 
@@ -159,7 +159,7 @@ Time::Seconds - a simple API to convert seconds to other date values
 
 =head1 SYNOPSIS
 
-    use Time::Object;
+    use Time::Piece;
     use Time::Seconds;
     
     my $t = localtime;
@@ -172,10 +172,10 @@ Time::Seconds - a simple API to convert seconds to other date values
 
 =head1 DESCRIPTION
 
-This module is part of the Time::Object distribution. It allows the user
+This module is part of the Time::Piece distribution. It allows the user
 to find out the number of minutes, hours, days, weeks or years in a given
-number of seconds. It is returned by Time::Object when you delta two
-Time::Object objects.
+number of seconds. It is returned by Time::Piece when you delta two
+Time::Piece objects.
 
 Time::Seconds also exports the following constants:
 
@@ -220,7 +220,7 @@ Bal�zs Szab� (dLux), dlux@kapu.hu
 
 =head1 LICENSE
 
-Please see Time::Object for the license.
+Please see Time::Piece for the license.
 
 =head1 Bugs
 
