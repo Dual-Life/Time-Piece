@@ -1,4 +1,4 @@
-# $Id: Piece.pm,v 1.7 2002/06/13 07:18:12 matt Exp $
+# $Id: Piece.pm,v 1.8 2002/06/14 12:23:48 matt Exp $
 
 package Time::Piece;
 
@@ -22,7 +22,7 @@ use UNIVERSAL qw(isa);
     ':override' => 'internal',
     );
 
-$VERSION = '1.04';
+$VERSION = '1.05';
 
 bootstrap Time::Piece $VERSION;
 

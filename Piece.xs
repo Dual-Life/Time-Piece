@@ -1,12 +1,12 @@
 #ifdef __cplusplus
 #extern "C" {
 #endif
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
 #ifdef sun
 #define _STRPTIME_DONTZERO
 #endif
+#include "EXTERN.h"
+#include "perl.h"
+#include "XSUB.h"
 #include <time.h>
 #ifdef __cplusplus
 }
