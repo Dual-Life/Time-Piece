@@ -1,6 +1,18 @@
 
 Time::Piece Changes
 
+1.06
+    - Fix for Solaris pre-2.8
+    - Compilation checked on:
+      sparc solaris 2.7
+      sparc solaris 2.8
+      i686 linux
+      ia64 linux
+      pa-risc1.1 hpux 10.20
+      pa-risc2.0 hpux 11.00
+      alpha dec_osf 4.0  
+    - Fixes for Win32 (Randy Kobes)
+    
 1.05
     - Fix for Solaris (again)
 

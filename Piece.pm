@@ -1,4 +1,4 @@
-# $Id: Piece.pm,v 1.8 2002/06/14 12:23:48 matt Exp $
+# $Id: Piece.pm,v 1.10 2002/06/19 12:16:33 matt Exp $
 
 package Time::Piece;
 
@@ -9,6 +9,7 @@ require Exporter;
 require DynaLoader;
 use Time::Seconds;
 use Carp;
+use Time::Local;
 use UNIVERSAL qw(isa);
 
 @ISA = qw(Exporter DynaLoader);
@@ -22,7 +23,7 @@ use UNIVERSAL qw(isa);
     ':override' => 'internal',
     );
 
-$VERSION = '1.05';
+$VERSION = '1.06';
 
 bootstrap Time::Piece $VERSION;
 
@@ -65,7 +66,7 @@ sub new {
         $self = &localtime($time);
     }
     elsif (ref($class) && $class->isa(__PACKAGE__)) {
-        $self = _mktime($class->[c_epoch], $class->[c_islocal]);
+        $self = _mktime($class->epoch, $class->[c_islocal]);
     }
     else {
         $self = &localtime();
@@ -90,6 +91,9 @@ sub parse {
 
 sub _mktime {
     my ($time, $islocal) = @_;
+    if (ref($time)) {
+	return wantarray ? @$time : bless [@$time, undef, $islocal], 'Time::Piece';
+    }
     my @time = $islocal ?
             CORE::localtime($time)
                 :
@@ -223,7 +227,7 @@ sub isdst {
 sub tzoffset {
     my $time = shift;
 
-    my $epoch = $time->[c_epoch];
+    my $epoch = $time->epoch;
 
     my $j = sub {
 
@@ -243,7 +247,17 @@ sub tzoffset {
 
 sub epoch {
     my $time = shift;
-    $time->[c_epoch];
+    if (defined($time->[c_epoch])) {
+	return $time->[c_epoch];
+    }
+    else {
+	my $epoch = $time->[c_islocal] ?
+	  timelocal(@{$time}[c_sec .. c_mon], $time->[c_year]+1900)
+	  :
+	  timegm(@{$time}[c_sec .. c_mon], $time->[c_year]+1900);
+	$time->[c_epoch] = $epoch;
+	return $epoch;
+    }
 }
 
 sub hms {
@@ -296,7 +310,6 @@ sub julian_day {
     return $jd;
 }
 
-# Hi Dominus!
 # MJD is defined as JD - 2400000.5 days
 sub mjd {
     return shift->julian_day - 2_400_000.5;
@@ -377,8 +390,9 @@ sub strptime {
     my $time = shift;
     my $string = shift;
     my $format = @_ ? shift(@_) : "%a, %d %b %Y %H:%M:%S %Z";
-    my $parsed = _strptime($string, $format);
-    return $time->new($parsed);
+    my @vals = _strptime($string, $format);
+#    warn(sprintf("got vals: %d-%d-%d %d:%d:%d\n", reverse(@vals)));
+    return scalar _mktime(\@vals, (ref($time) ? $time->[c_islocal] : 0));
 }
 
 sub day_list {
@@ -424,10 +438,10 @@ use overload '""' => \&cdate,
 sub cdate {
     my $time = shift;
     if ($time->[c_islocal]) {
-        return scalar(CORE::localtime($time->[c_epoch]));
+        return scalar(CORE::localtime($time->epoch));
     }
     else {
-        return scalar(CORE::gmtime($time->[c_epoch]));
+        return scalar(CORE::gmtime($time->epoch));
     }
 }
 
@@ -449,11 +463,11 @@ sub subtract {
     die "Can't subtract a date from something!" if shift;
     
     if (ref($rhs) && $rhs->isa('Time::Piece')) {
-        return Time::Seconds->new($time->[c_epoch] - $rhs->epoch);
+        return Time::Seconds->new($time->epoch - $rhs->epoch);
     }
     else {
         # rhs is seconds.
-        return _mktime(($time->[c_epoch] - $rhs), $time->[c_islocal]);
+        return _mktime(($time->epoch - $rhs), $time->[c_islocal]);
     }
 }
 
@@ -462,7 +476,7 @@ sub add {
     my $rhs = shift;
     croak "Invalid rhs of addition: $rhs" if ref($rhs);
 
-    return _mktime(($time->[c_epoch] + $rhs), $time->[c_islocal]);
+    return _mktime(($time->epoch + $rhs), $time->[c_islocal]);
 }
 
 use overload

@@ -1,9 +1,6 @@
 #ifdef __cplusplus
 #extern "C" {
 #endif
-#ifdef sun
-#define _STRPTIME_DONTZERO
-#endif
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
@@ -29,8 +26,24 @@
 #ifdef HAS_GNULIBC
 # ifndef STRUCT_TM_HASZONE
 #    define STRUCT_TM_HASZONE
+# else
+#    define USE_TM_GMTOFF
 # endif
 #endif
+
+#define    DAYS_PER_YEAR    365
+#define    DAYS_PER_QYEAR    (4*DAYS_PER_YEAR+1)
+#define    DAYS_PER_CENT    (25*DAYS_PER_QYEAR-1)
+#define    DAYS_PER_QCENT    (4*DAYS_PER_CENT+1)
+#define    SECS_PER_HOUR    (60*60)
+#define    SECS_PER_DAY    (24*SECS_PER_HOUR)
+/* parentheses deliberately absent on these two, otherwise they don't work */
+#define    MONTH_TO_DAYS    153/5
+#define    DAYS_TO_MONTH    5/153
+/* offset to bias by March (month 4) 1st between month/mday & year finding */
+#define    YEAR_ADJUST    (4*MONTH_TO_DAYS+1)
+/* as used here, the algorithm leaves Sunday as day 1 unless we adjust it */
+#define    WEEKDAY_BIAS    6    /* (1+6)%7 makes Sunday 0 again */
 
 #ifdef STRUCT_TM_HASZONE
 static void
@@ -56,20 +69,6 @@ mini_mktime(struct tm *ptm)
     int secs;
     int month, mday, year, jday;
     int odd_cent, odd_year;
-
-#define    DAYS_PER_YEAR    365
-#define    DAYS_PER_QYEAR    (4*DAYS_PER_YEAR+1)
-#define    DAYS_PER_CENT    (25*DAYS_PER_QYEAR-1)
-#define    DAYS_PER_QCENT    (4*DAYS_PER_CENT+1)
-#define    SECS_PER_HOUR    (60*60)
-#define    SECS_PER_DAY    (24*SECS_PER_HOUR)
-/* parentheses deliberately absent on these two, otherwise they don't work */
-#define    MONTH_TO_DAYS    153/5
-#define    DAYS_TO_MONTH    5/153
-/* offset to bias by March (month 4) 1st between month/mday & year finding */
-#define    YEAR_ADJUST    (4*MONTH_TO_DAYS+1)
-/* as used here, the algorithm leaves Sunday as day 1 unless we adjust it */
-#define    WEEKDAY_BIAS    6    /* (1+6)%7 makes Sunday 0 again */
 
 /*
  * Year/day algorithm notes:
@@ -243,7 +242,11 @@ mini_mktime(struct tm *ptm)
     ptm->tm_wday = (jday + WEEKDAY_BIAS) % 7;
 }
 
-#if defined(__APPLE__) && defined(__MACH__) /* Mac OS X */
+#if (defined(__APPLE__) && defined(__MACH__)) || defined(WIN32) /* Mac OS X */
+#ifdef WIN32
+#define strncasecmp(x,y,n) strnicmp(x,y,n)
+#define alloca _alloca
+#endif
 #include <time.h>
 #include <ctype.h>
 #include <string.h>
@@ -795,12 +798,12 @@ got_GMT = 0;
 
 #endif /* Mac OS X */
 
-MODULE = Time::Piece     PACKAGE = Time::Piece    PREFIX = TmPc
+MODULE = Time::Piece     PACKAGE = Time::Piece
 
-PROTOTYPES: DISABLE
+PROTOTYPES: ENABLE
 
 char *
-TmPc_strftime(fmt, sec, min, hour, mday, mon, year, wday = -1, yday = -1, isdst = -1)
+_strftime(fmt, sec, min, hour, mday, mon, year, wday = -1, yday = -1, isdst = -1)
     char *        fmt
     int        sec
     int        min
@@ -874,46 +877,39 @@ TmPc_strftime(fmt, sec, min, hour, mday, mon, year, wday = -1, yday = -1, isdst 
         }
     }
 
-int
-TmPc_strptime ( string, format )
+void
+_strptime ( string, format )
 	char * string
 	char * format
-    CODE:
-    {
-      char tmpbuf[128];
-      struct tm * mytm;
-      time_t t;
-      char * remainder;
-      int len;
+  PREINIT:
+       char tmpbuf[128];
+       struct tm mytm, epochtm;
+       time_t t;
+       char * remainder;
+       int len;
+       int tzdiff;
+  PPCODE:
+       t = 0;
+       mytm = *gmtime(&t);
+       
+       remainder = (char *)strptime(string, format, &mytm);
+       
+       if (remainder == NULL) {
+	  croak("Error parsing time");
+       }
 
-      t = 0;
-      mytm = gmtime(&t);
+       if (*remainder != '\0') {
+           warn("garbage at end of string in strptime: %s", remainder);
+       }
+	  
+       mini_mktime(&mytm);
 
-      /*
-      mytm.tm_sec = 0;
-      mytm.tm_min = 0;
-      mytm.tm_hour = 0;
-      mytm.tm_mday = 1;
-      mytm.tm_mon = 1;
-      mytm.tm_year = 1970;
-      mytm.tm_wday = 0;
-      mytm.tm_yday = 0;
-      mytm.tm_isdst = 0;
-      */
-
-      remainder = (char *)strptime(string, format, mytm);
-      
-      if (remainder != NULL) {
-         if (*remainder != '\0') {
-             warn("garbage at end of string in strptime: %s", remainder);
-         }
-         mytm->tm_isdst = -1; /* remove isdst */
-         # now get epoch secs
-         RETVAL = mktime(mytm);
-      }
-      else {
-         croak("Error parsing time");
-      }
-    }
-    OUTPUT:
-      RETVAL
+  /* warn("tm: %d-%d-%d %d:%d:%d\n", mytm.tm_year, mytm.tm_mon, mytm.tm_mday, mytm.tm_hour, mytm.tm_min, mytm.tm_sec); */
+	  
+       EXTEND(SP, 6);
+       PUSHs(sv_2mortal(newSViv(mytm.tm_sec)));
+       PUSHs(sv_2mortal(newSViv(mytm.tm_min)));
+       PUSHs(sv_2mortal(newSViv(mytm.tm_hour)));
+       PUSHs(sv_2mortal(newSViv(mytm.tm_mday)));
+       PUSHs(sv_2mortal(newSViv(mytm.tm_mon)));
+       PUSHs(sv_2mortal(newSViv(mytm.tm_year)));
