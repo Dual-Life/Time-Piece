@@ -28,6 +28,8 @@ Time::Piece does the right thing with the return value from localtime:
   - when stringified (or printed), Time::Piece objects look like
     the output from scalar(localtime)
 
+  - Time::Piece supports years outside of the epoch range
+
 Beyond that, Time::Piece objects allow you to get any part of the
 date/time via method calls, plus they allow you to get at the string
 form of the week day and month. It has methods for julian days, and
