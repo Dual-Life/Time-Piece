@@ -11,4 +11,5 @@ t/02core.t
 t/03compare.t
 t/04mjd.t
 t/05overload.t
-t/06large.t
+t/06subclass.t
+META.yml                                 Module meta-data (added by MakeMaker)

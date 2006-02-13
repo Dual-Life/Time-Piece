@@ -1,9 +1,10 @@
 
 Time::Piece Changes
 
-2.00_00
-    - Build on DateTime instead
-    - Support years outside of the epoch range
+1.09
+    - (patches from Ricardo SIGNES)
+    - Tests largely moved to Test::More (from Test.pm)
+    - Time::Piece should now be safely subclassable
 
 1.08
     - A number of fixes for strptime

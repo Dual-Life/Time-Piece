@@ -1,11 +1,11 @@
-# $Id: Seconds.pm,v 1.12 2003/02/10 09:06:00 matt Exp $
+# $Id: Seconds.pm,v 1.11 2002/09/08 20:51:38 matt Exp $
 
 package Time::Seconds;
 use strict;
 use vars qw/@EXPORT @EXPORT_OK @ISA/;
-use DateTime::Duration;
+use UNIVERSAL qw(isa);
 
-@ISA = ('Exporter', 'DateTime::Duration');
+@ISA = 'Exporter';
 
 @EXPORT = qw(
 		ONE_MINUTE 
@@ -39,17 +39,115 @@ use constant NON_LEAP_YEAR => 31_536_000; # 365 * ONE_DAY
 use constant cs_sec => 0;
 use constant cs_mon => 1;
 
+use overload 
+                'fallback' => 'undef',
+		'0+' => \&seconds,
+		'""' => \&seconds,
+		'<=>' => \&compare,
+		'+' => \&add,
+                '-' => \&subtract,
+                '-=' => \&subtract_from,
+                '+=' => \&add_to,
+                '=' => \&copy;
+
+sub new {
+    my $class = shift;
+    my ($val) = @_;
+    $val = 0 unless defined $val;
+    bless \$val, $class;
+}
+
+sub _get_ovlvals {
+    my ($lhs, $rhs, $reverse) = @_;
+    $lhs = $lhs->seconds;
+
+    if (UNIVERSAL::isa($rhs, 'Time::Seconds')) {
+        $rhs = $rhs->seconds;
+    }
+    elsif (ref($rhs)) {
+        die "Can't use non Seconds object in operator overload";
+    }
+
+    if ($reverse) {
+        return $rhs, $lhs;
+    }
+
+    return $lhs, $rhs;
+}
+
+sub compare {
+    my ($lhs, $rhs) = _get_ovlvals(@_);
+    return $lhs <=> $rhs;
+}
+
+sub add {
+    my ($lhs, $rhs) = _get_ovlvals(@_);
+    return Time::Seconds->new($lhs + $rhs);
+}
+
+sub add_to {
+    my $lhs = shift;
+    my $rhs = shift;
+    $rhs = $rhs->seconds if UNIVERSAL::isa($rhs, 'Time::Seconds');
+    $$lhs += $rhs;
+    return $lhs;
+}
+
+sub subtract {
+    my ($lhs, $rhs) = _get_ovlvals(@_);
+    return Time::Seconds->new($lhs - $rhs);
+}
+
+sub subtract_from {
+    my $lhs = shift;
+    my $rhs = shift;
+    $rhs = $rhs->seconds if UNIVERSAL::isa($rhs, 'Time::Seconds');
+    $$lhs -= $rhs;
+    return $lhs;
+}
+
+sub copy {
+	Time::Seconds->new(${$_[0]});
+}
+
+sub seconds {
+    my $s = shift;
+    return $$s;
+}
+
+sub minutes {
+    my $s = shift;
+    return $$s / 60;
+}
+
+sub hours {
+    my $s = shift;
+    $s->minutes / 60;
+}
+
+sub days {
+    my $s = shift;
+    $s->hours / 24;
+}
+
+sub weeks {
+    my $s = shift;
+    $s->days / 7;
+}
+
+sub months {
+    my $s = shift;
+    $s->days / 30.4368541;
+}
+
 sub financial_months {
     my $s = shift;
     $s->days / 30;
 }
 
-sub new {
-    my $class = shift;
-    if (@_ == 1) {
-        return $class->SUPER::new(seconds => $_[0]);
-    }
-    return $class->SUPER::new(@_);
+sub years {
+    my $s = shift;
+    $s->days / 365.24225;
 }
 
 1;

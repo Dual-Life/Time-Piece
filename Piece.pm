@@ -1,20 +1,18 @@
-# $Id: Piece.pm,v 1.21 2003/06/10 12:33:35 matt Exp $
+# $Id: Piece.pm,v 1.16.2.2 2006/02/11 12:55:26 rjbs Exp $
 
 package Time::Piece;
 
 use strict;
 use vars qw($VERSION @ISA @EXPORT %EXPORT_TAGS);
 
-use Exporter ();
-use DynaLoader ();
+require Exporter;
+require DynaLoader;
 use Time::Seconds;
 use Carp;
 use Time::Local;
 use UNIVERSAL qw(isa);
-use DateTime;
-use DateTime::Format::Strptime;
 
-@ISA = qw(Exporter DynaLoader DateTime);
+@ISA = qw(Exporter DynaLoader);
 
 @EXPORT = qw(
     localtime
@@ -25,9 +23,9 @@ use DateTime::Format::Strptime;
     ':override' => 'internal',
     );
 
-$VERSION = '2.00_01';
+$VERSION = '1.09';
 
-__PACKAGE__->bootstrap($VERSION);
+bootstrap Time::Piece $VERSION;
 
 my $DATE_SEP = '-';
 my $TIME_SEP = ':';
@@ -37,36 +35,97 @@ my @FULLMON_LIST = qw(January February March April May June July
 my @DAY_LIST = qw(Sun Mon Tue Wed Thu Fri Sat);
 my @FULLDAY_LIST = qw(Sunday Monday Tuesday Wednesday Thursday Friday Saturday);
 
+use constant 'c_sec' => 0;
+use constant 'c_min' => 1;
+use constant 'c_hour' => 2;
+use constant 'c_mday' => 3;
+use constant 'c_mon' => 4;
+use constant 'c_year' => 5;
+use constant 'c_wday' => 6;
+use constant 'c_yday' => 7;
+use constant 'c_isdst' => 8;
+use constant 'c_epoch' => 9;
+use constant 'c_islocal' => 10;
+
 sub localtime {
-    my $time = shift || time;
-    __PACKAGE__->from_epoch( epoch => $time );
+    unshift @_, __PACKAGE__ unless eval { $_[0]->isa('Time::Piece') };
+    my $class = shift;
+    my $time  = shift;
+    $time = time if (!defined $time);
+    $class->_mktime($time, 1);
 }
 
 sub gmtime {
-    my $time = shift || time;
-    __PACKAGE__->from_epoch( epoch => $time, time_zone => "UTC" );
+    unshift @_, __PACKAGE__ unless eval { $_[0]->isa('Time::Piece') };
+    my $class = shift;
+    my $time  = shift;
+    $time = time if (!defined $time);
+    $class->_mktime($time, 0);
+}
+
+sub new {
+    my $class = shift;
+    my ($time) = @_;
+    
+    my $self;
+    
+    if (defined($time)) {
+        $self = $class->localtime($time);
+    }
+    elsif (ref($class) && $class->isa(__PACKAGE__)) {
+        $self = $class->_mktime($class->epoch, $class->[c_islocal]);
+    }
+    else {
+        $self = $class->localtime();
+    }
+    
+    return bless $self, $class;
 }
 
 sub parse {
     my $proto = shift;
     my $class = ref($proto) || $proto;
-    my @parts;
+    my @components;
     if (@_ > 1) {
-        @parts = @_;
+        @components = @_;
     }
     else {
-        @parts = shift =~ /(\d+)$DATE_SEP(\d+)$DATE_SEP(\d+)(?:(?:T|\s+)(\d+)$TIME_SEP(\d+)(?:$TIME_SEP(\d+)))/;
-        @parts = reverse(@parts[0..5]);
+        @components = shift =~ /(\d+)$DATE_SEP(\d+)$DATE_SEP(\d+)(?:(?:T|\s+)(\d+)$TIME_SEP(\d+)(?:$TIME_SEP(\d+)))/;
+        @components = reverse(@components[0..5]);
     }
-    $class->new(
-        second => $parts[0],
-        minute => $parts[1],
-        hour => $parts[2],
-        day => $parts[3],
-        month => $parts[4] + 1,
-        year => $parts[5],
-        time_zone => "UTC", # utc
-        );
+    return $class->new(_strftime("%s", @components));
+}
+
+sub _mktime {
+    my ($class, $time, $islocal) = @_;
+    $class = eval { (ref $class)->isa('Time::Piece') } ? ref $class : $class;
+    if (ref($time)) {
+	$time->[c_epoch] = undef;
+	return wantarray ? @$time : bless [@$time, $islocal], $class;
+    }
+    _tzset();
+    my @time = $islocal ?
+            CORE::localtime($time)
+                :
+            CORE::gmtime($time);
+    wantarray ? @time : bless [@time, $time, $islocal], $class;
+}
+
+my %_special_exports = (
+  localtime => sub { my $c = $_[0]; sub { $c->localtime(@_) } },
+  gmtime    => sub { my $c = $_[0]; sub { $c->gmtime(@_)    } },
+);
+
+sub export {
+  my ($class, $to, @methods) = @_;
+  for my $method (@methods) {
+    if (exists $_special_exports{$method}) {
+      no strict 'refs';
+      *{$to . "::$method"} = $_special_exports{$method}->($class);
+    } else {
+      $class->SUPER::export($to, $method);
+    }
+  }
 }
 
 sub import {
@@ -84,17 +143,49 @@ sub import {
 
 ## Methods ##
 
+sub sec {
+    my $time = shift;
+    $time->[c_sec];
+}
+
+*second = \&sec;
+
+sub min {
+    my $time = shift;
+    $time->[c_min];
+}
+
+*minute = \&min;
+
+sub hour {
+    my $time = shift;
+    $time->[c_hour];
+}
+
+sub mday {
+    my $time = shift;
+    $time->[c_mday];
+}
+
+*day_of_month = \&mday;
+
+sub mon {
+    my $time = shift;
+    $time->[c_mon] + 1;
+}
+
 sub _mon {
-    shift->mon_0;
+    my $time = shift;
+    $time->[c_mon];
 }
 
 sub month {
     my $time = shift;
     if (@_) {
-        return $_[$time->mon_0];
+        return $_[$time->[c_mon]];
     }
     elsif (@MON_LIST) {
-        return $MON_LIST[$time->mon_0];
+        return $MON_LIST[$time->[c_mon]];
     }
     else {
         return $time->strftime('%b');
@@ -106,33 +197,40 @@ sub month {
 sub fullmonth {
     my $time = shift;
     if (@_) {
-        return $_[$time->mon_0];
+        return $_[$time->[c_mon]];
     }
     elsif (@FULLMON_LIST) {
-        return $FULLMON_LIST[$time->mon_0];
+        return $FULLMON_LIST[$time->[c_mon]];
     }
     else {
         return $time->strftime('%B');
     }
 }
 
+sub year {
+    my $time = shift;
+    $time->[c_year] + 1900;
+}
+
 sub _year {
-    shift->year - 1900;
+    my $time = shift;
+    $time->[c_year];
 }
 
 sub yy {
     my $time = shift;
-    my $res = $time->year % 100;
+    my $res = $time->[c_year] % 100;
     return $res > 9 ? $res : "0$res";
 }
 
-# DateTime starts week on a Monday
 sub wday {
-    shift->SUPER::wday + 1;
+    my $time = shift;
+    $time->[c_wday] + 1;
 }
 
 sub _wday {
-    shift->SUPER::wday;
+    my $time = shift;
+    $time->[c_wday];
 }
 
 *day_of_week = \&_wday;
@@ -140,10 +238,10 @@ sub _wday {
 sub wdayname {
     my $time = shift;
     if (@_) {
-        return $_[$time->_wday];
+        return $_[$time->[c_wday]];
     }
     elsif (@DAY_LIST) {
-        return $DAY_LIST[$time->_wday];
+        return $DAY_LIST[$time->[c_wday]];
     }
     else {
         return $time->strftime('%a');
@@ -155,10 +253,10 @@ sub wdayname {
 sub fullday {
     my $time = shift;
     if (@_) {
-        return $_[$time->_wday];
+        return $_[$time->[c_wday]];
     }
     elsif (@FULLDAY_LIST) {
-        return $FULLDAY_LIST[$time->_wday];
+        return $FULLDAY_LIST[$time->[c_wday]];
     }
     else {
         return $time->strftime('%A');
@@ -166,26 +264,141 @@ sub fullday {
 }
 
 sub yday {
-    shift->doy - 1;
+    my $time = shift;
+    $time->[c_yday];
 }
 
 *day_of_year = \&yday;
 
 sub isdst {
-    shift->is_dst;
+    my $time = shift;
+    $time->[c_isdst];
 }
 
 *daylight_savings = \&isdst;
 
 # Thanks to Tony Olekshy <olekshy@cs.ualberta.ca> for this algorithm
 sub tzoffset {
-    shift->offset;
+    my $time = shift;
+
+    my $epoch = $time->epoch;
+
+    my $j = sub {
+
+        my ($s,$n,$h,$d,$m,$y) = @_; $m += 1; $y += 1900;
+
+        $time->_jd($y, $m, $d, $h, $n, $s);
+
+    };
+
+    # Compute floating offset in hours.
+    #
+    my $delta = 24 * (&$j(CORE::localtime $epoch) - &$j(CORE::gmtime $epoch));
+
+    # Return value in seconds rounded to nearest minute.
+    return Time::Seconds->new( int($delta * 60 + ($delta >= 0 ? 0.5 : -0.5)) * 60 );
 }
+
+sub epoch {
+    my $time = shift;
+    if (defined($time->[c_epoch])) {
+	return $time->[c_epoch];
+    }
+    else {
+	my $epoch = $time->[c_islocal] ?
+	  timelocal(@{$time}[c_sec .. c_mon], $time->[c_year]+1900)
+	  :
+	  timegm(@{$time}[c_sec .. c_mon], $time->[c_year]+1900);
+	$time->[c_epoch] = $epoch;
+	return $epoch;
+    }
+}
+
+sub hms {
+    my $time = shift;
+    my $sep = @_ ? shift(@_) : $TIME_SEP;
+    sprintf("%02d$sep%02d$sep%02d", $time->[c_hour], $time->[c_min], $time->[c_sec]);
+}
+
+*time = \&hms;
+
+sub ymd {
+    my $time = shift;
+    my $sep = @_ ? shift(@_) : $DATE_SEP;
+    sprintf("%d$sep%02d$sep%02d", $time->year, $time->mon, $time->[c_mday]);
+}
+
+*date = \&ymd;
+
+sub mdy {
+    my $time = shift;
+    my $sep = @_ ? shift(@_) : $DATE_SEP;
+    sprintf("%02d$sep%02d$sep%d", $time->mon, $time->[c_mday], $time->year);
+}
+
+sub dmy {
+    my $time = shift;
+    my $sep = @_ ? shift(@_) : $DATE_SEP;
+    sprintf("%02d$sep%02d$sep%d", $time->[c_mday], $time->mon, $time->year);
+}
+
+sub datetime {
+    my $time = shift;
+    my %seps = (date => $DATE_SEP, T => 'T', time => $TIME_SEP, @_);
+    return join($seps{T}, $time->date($seps{date}), $time->time($seps{time}));
+}
+
+
 
 # Julian Day is always calculated for UT regardless
 # of local time
 sub julian_day {
-    shift->jd;
+    my $time = shift;
+    # Correct for localtime
+    $time = $time->gmtime( $time->epoch ) if $time->[c_islocal];
+
+    # Calculate the Julian day itself
+    my $jd = $time->_jd( $time->year, $time->mon, $time->mday,
+                        $time->hour, $time->min, $time->sec);
+
+    return $jd;
+}
+
+# MJD is defined as JD - 2400000.5 days
+sub mjd {
+    return shift->julian_day - 2_400_000.5;
+}
+
+# Internal calculation of Julian date. Needed here so that
+# both tzoffset and mjd/jd methods can share the code
+# Algorithm from Hatcher 1984 (QJRAS 25, 53-55), and
+#  Hughes et al, 1989, MNRAS, 238, 15
+# See: http://adsabs.harvard.edu/cgi-bin/nph-bib_query?bibcode=1989MNRAS.238.1529H&db_key=AST
+# for more details
+
+sub _jd {
+    my $self = shift;
+    my ($y, $m, $d, $h, $n, $s) = @_;
+
+    # Adjust input parameters according to the month
+    $y = ( $m > 2 ? $y : $y - 1);
+    $m = ( $m > 2 ? $m - 3 : $m + 9);
+
+    # Calculate the Julian Date (assuming Julian calendar)
+    my $J = int( 365.25 *( $y + 4712) )
+      + int( (30.6 * $m) + 0.5)
+        + 59
+          + $d
+            - 0.5;
+
+    # Calculate the Gregorian Correction (since we have Gregorian dates)
+    my $G = 38 - int( 0.75 * int(49+($y/100)));
+
+    # Calculate the actual Julian Date
+    my $JD = $J + $G;
+
+    # Modify to include hours/mins/secs in floating portion.
+    return $JD + ($h + ($n + $s / 60) / 60) / 24;
 }
 
 sub week {
@@ -195,7 +408,7 @@ sub week {
     # Julian day is independent of time zone so add on tzoffset
     # if we are using local time here since we want the week day
     # to reflect the local time rather than UTC
-    $J += ($self->tzoffset/(24*3600));
+    $J += ($self->tzoffset/(24*3600)) if $self->[c_islocal];
 
     # Now that we have the Julian day including fractions
     # convert it to an integer Julian Day Number using nearest
@@ -210,35 +423,48 @@ sub week {
     return $d1 / 7 + 1;
 }
 
+sub _is_leap_year {
+    my $year = shift;
+    return (($year %4 == 0) && !($year % 100 == 0)) || ($year % 400 == 0)
+               ? 1 : 0;
+}
+
+sub is_leap_year {
+    my $time = shift;
+    my $year = $time->year;
+    return _is_leap_year($year);
+}
+
 my @MON_LAST = qw(31 28 31 30 31 30 31 31 30 31 30 31);
 
 sub month_last_day {
     my $time = shift;
-    my $_mon = $time->mon_0;
-    return $MON_LAST[$_mon] + ($_mon == 1 ? $time->is_leap_year : 0);
+    my $year = $time->year;
+    my $_mon = $time->_mon;
+    return $MON_LAST[$_mon] + ($_mon == 1 ? _is_leap_year($year) : 0);
 }
 
 sub strftime {
-    my $t = shift;
-    my $fmt = @_ ? shift(@_) : "%a, %d %b %Y %H:%M:%S %Z";
-    if ($fmt =~ /\%[DIUWjes]/) {
-        return _strftime($fmt, $t->sec, $t->min, $t->hour, $t->mday, $t->_mon, $t->_year);
+    my $time = shift;
+    my $format = @_ ? shift(@_) : "%a, %d %b %Y %H:%M:%S %Z";
+    if (!defined $time->[c_wday]) {
+	if ($time->[c_islocal]) {
+            return _strftime($format, CORE::localtime($time->epoch));
+	}
+	else {
+	    return _strftime($format, CORE::gmtime($time->epoch));
+	}
     }
-    return $t->SUPER::strftime($fmt, @_);
+    return _strftime($format, (@$time)[c_sec..c_isdst]);
 }
 
 sub strptime {
     my $time = shift;
     my $string = shift;
     my $format = @_ ? shift(@_) : "%a, %d %b %Y %H:%M:%S %Z";
-    my $Strp = new DateTime::Format::Strptime(
-                    pattern     => $format,
-                    language    => 'English',
-                    time_zone   => (ref($time) ? $time->time_zone : 'UTC'),
-                );
-    my $class = ref($time) || $time;
-    my $t = bless($Strp->parse_datetime($string), $class);
-    return $t;
+    my @vals = _strptime($string, $format);
+#    warn(sprintf("got vals: %d-%d-%d %d:%d:%d\n", reverse(@vals)));
+    return scalar $time->_mktime(\@vals, (ref($time) ? $time->[c_islocal] : 0));
 }
 
 sub day_list {
@@ -277,68 +503,77 @@ sub date_separator {
     return $old;
 }
 
-sub ymd {
-    my $t = shift;
-    my $sep = @_ ? $_[0] : $DATE_SEP;
-    $t->SUPER::ymd($sep);
-}
-
-sub mdy {
-    my $t = shift;
-    my $sep = @_ ? $_[0] : $DATE_SEP;
-    $t->SUPER::mdy($sep);
-}
-
-sub dmy {
-    my $t = shift;
-    my $sep = @_ ? $_[0] : $DATE_SEP;
-    $t->SUPER::dmy($sep);
-}
-
-sub hms {
-    my $t = shift;
-    my $sep = @_ ? $_[0] : $TIME_SEP;
-    $t->SUPER::hms($sep);
-}
-
-sub datetime {
-    my $t = shift;
-    my $dsep = $DATE_SEP;
-    my $tsep = $TIME_SEP;
-    my $sep = 'T';
-    if (@_) {
-        my %args = @_;
-        $dsep = $args{'date'} if exists $args{'date'};
-        $tsep = $args{'time'} if exists $args{'time'};
-        $sep = $args{'T'} if exists $args{'T'};
-    }
-    return $t->ymd($dsep) . $sep . $t->hms($tsep);
-}
-
 use overload '""' => \&cdate,
              'cmp' => \&str_compare,
              'fallback' => undef;
 
 sub cdate {
     my $time = shift;
-    # Mon Feb 10 17:19:35 2003
-    return $time->strftime('%a %b %d %H:%M:%S %Y');
+    if ($time->[c_islocal]) {
+        return scalar(CORE::localtime($time->epoch));
+    }
+    else {
+        return scalar(CORE::gmtime($time->epoch));
+    }
 }
 
 sub str_compare {
     my ($lhs, $rhs, $reverse) = @_;
-    if (UNIVERSAL::isa($rhs, 'DateTime')) {
+    if (UNIVERSAL::isa($rhs, 'Time::Piece')) {
         $rhs = "$rhs";
     }
     return $reverse ? $rhs cmp $lhs->cdate : $lhs->cdate cmp $rhs;
 }
 
-sub __is_leap_year {
-    my $year = shift;
-    warn("_is_leap_year($year)");
-    warn("caller: ", caller);
-    my $d = DateTime->new(year => $year, time_zone => "UTC");
-    return $d->is_leap_year;
+use overload
+        '-' => \&subtract,
+        '+' => \&add;
+
+sub subtract {
+    my $time = shift;
+    my $rhs = shift;
+    if (UNIVERSAL::isa($rhs, 'Time::Seconds')) {
+        $rhs = $rhs->seconds;
+    }
+    die "Can't subtract a date from something!" if shift;
+    
+    if (UNIVERSAL::isa($rhs, 'Time::Piece')) {
+        return Time::Seconds->new($time->epoch - $rhs->epoch);
+    }
+    else {
+        # rhs is seconds.
+        return $time->_mktime(($time->epoch - $rhs), $time->[c_islocal]);
+    }
+}
+
+sub add {
+    my $time = shift;
+    my $rhs = shift;
+    if (UNIVERSAL::isa($rhs, 'Time::Seconds')) {
+        $rhs = $rhs->seconds;
+    }
+    croak "Invalid rhs of addition: $rhs" if ref($rhs);
+
+    return $time->_mktime(($time->epoch + $rhs), $time->[c_islocal]);
+}
+
+use overload
+        '<=>' => \&compare;
+
+sub get_epochs {
+    my ($lhs, $rhs, $reverse) = @_;
+    if (!UNIVERSAL::isa($rhs, 'Time::Piece')) {
+        $rhs = $lhs->new($rhs);
+    }
+    if ($reverse) {
+        return $rhs->epoch, $lhs->epoch;
+    }
+    return $lhs->epoch, $rhs->epoch;
+}
+
+sub compare {
+    my ($lhs, $rhs) = get_epochs(@_);
+    return $lhs <=> $rhs;
 }
 
 1;
@@ -361,9 +596,7 @@ Time::Piece - Object Oriented time objects
 This module replaces the standard localtime and gmtime functions with
 implementations that return objects. It does so in a backwards
 compatible manner, so that using localtime/gmtime in the way documented
-in perlfunc will still return what you expect. Not only that but
-by using DateTime as a base class, Time::Piece supports dates outside
-of the epoch range (though not by using 64 bit epoch times).
+in perlfunc will still return what you expect.
 
 The module actually implements most of an interface described by
 Larry Wall on the perl5-porters mailing list here:
@@ -530,16 +763,6 @@ Finally, it's possible to override localtime and gmtime everywhere, by
 including the ':override' tag in the import list:
 
     use Time::Piece ':override';
-
-=head2 Early/Late Dates
-
-Version 2.00 of Time::Piece supports early and late dates (before and
-after the epoch under/over flow dates). However this does not mean
-you can do C<localtime($bigint)> to get at those dates - as
-internally that code still goes through the C library's localtime()
-function. Instead to get to a large date you must add or remove
-years. See F<t/06large.t> in the test suite for an example. This
-code is likely to be expanded on greatly in the near future.
 
 =head1 AUTHOR
 
