@@ -1,6 +1,11 @@
 
 Time::Piece Changes
 
+1.10
+    - Number of bug fixes from RT
+    - (maintenance by Ricardo SIGNES)
+    - avoid warning in _mktime (bug #19677)
+
 1.09
     - (patches from Ricardo SIGNES)
     - Tests largely moved to Test::More (from Test.pm)

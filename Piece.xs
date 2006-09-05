@@ -23,7 +23,7 @@
  * support is added and NETaa14816 is considered in full.
  * It does not address tzname aspects of NETaa14816.
  */
-#ifdef HAS_GNULIBC
+#if !defined(HAS_GNULIBC)
 # ifndef STRUCT_TM_HASZONE
 #    define STRUCT_TM_HASZONE
 # else
@@ -816,6 +816,7 @@ _strftime(fmt, sec, min, hour, mday, mon, year, wday = -1, yday = -1, isdst = -1
         char tmpbuf[128];
         struct tm mytm;
         int len;
+        memset(&mytm, 0, sizeof(mytm));
         my_init_tm(&mytm);    /* XXX workaround - see my_init_tm() above */
         mytm.tm_sec = sec;
         mytm.tm_min = min;

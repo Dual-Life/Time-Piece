@@ -1,9 +1,8 @@
-# $Id: Piece.pm,v 1.16.2.2 2006/02/11 12:55:26 rjbs Exp $
+# $Id: Piece.pm 65 2006-09-05 02:05:11Z matt $
 
 package Time::Piece;
 
 use strict;
-use vars qw($VERSION @ISA @EXPORT %EXPORT_TAGS);
 
 require Exporter;
 require DynaLoader;
@@ -12,18 +11,18 @@ use Carp;
 use Time::Local;
 use UNIVERSAL qw(isa);
 
-@ISA = qw(Exporter DynaLoader);
+our @ISA = qw(Exporter DynaLoader);
 
-@EXPORT = qw(
+our @EXPORT = qw(
     localtime
     gmtime
 );
 
-%EXPORT_TAGS = (
+our %EXPORT_TAGS = (
     ':override' => 'internal',
     );
 
-$VERSION = '1.09';
+our $VERSION = '1.10';
 
 bootstrap Time::Piece $VERSION;
 
@@ -98,10 +97,12 @@ sub parse {
 
 sub _mktime {
     my ($class, $time, $islocal) = @_;
-    $class = eval { (ref $class)->isa('Time::Piece') } ? ref $class : $class;
+    $class = eval { (ref $class) && (ref $class)->isa('Time::Piece') }
+           ? ref $class
+           : $class;
     if (ref($time)) {
-	$time->[c_epoch] = undef;
-	return wantarray ? @$time : bless [@$time, $islocal], $class;
+        $time->[c_epoch] = undef;
+        return wantarray ? @$time : bless [@$time, $islocal], $class;
     }
     _tzset();
     my @time = $islocal ?
@@ -121,6 +122,7 @@ sub export {
   for my $method (@methods) {
     if (exists $_special_exports{$method}) {
       no strict 'refs';
+      no warnings 'redefine';
       *{$to . "::$method"} = $_special_exports{$method}->($class);
     } else {
       $class->SUPER::export($to, $method);
@@ -280,6 +282,8 @@ sub isdst {
 # Thanks to Tony Olekshy <olekshy@cs.ualberta.ca> for this algorithm
 sub tzoffset {
     my $time = shift;
+    
+    return Time::Seconds->new(0) unless $time->[c_islocal];
 
     my $epoch = $time->epoch;
 
@@ -302,15 +306,15 @@ sub tzoffset {
 sub epoch {
     my $time = shift;
     if (defined($time->[c_epoch])) {
-	return $time->[c_epoch];
+        return $time->[c_epoch];
     }
     else {
-	my $epoch = $time->[c_islocal] ?
-	  timelocal(@{$time}[c_sec .. c_mon], $time->[c_year]+1900)
-	  :
-	  timegm(@{$time}[c_sec .. c_mon], $time->[c_year]+1900);
-	$time->[c_epoch] = $epoch;
-	return $epoch;
+        my $epoch = $time->[c_islocal] ?
+          timelocal(@{$time}[c_sec .. c_mon], $time->[c_year]+1900)
+          :
+          timegm(@{$time}[c_sec .. c_mon], $time->[c_year]+1900);
+        $time->[c_epoch] = $epoch;
+        return $epoch;
     }
 }
 
@@ -446,14 +450,15 @@ sub month_last_day {
 
 sub strftime {
     my $time = shift;
-    my $format = @_ ? shift(@_) : "%a, %d %b %Y %H:%M:%S %Z";
+    my $tzname = $time->[c_islocal] ? '%Z' : 'UTC';
+    my $format = @_ ? shift(@_) : "%a, %d %b %Y %H:%M:%S $tzname";
     if (!defined $time->[c_wday]) {
-	if ($time->[c_islocal]) {
+        if ($time->[c_islocal]) {
             return _strftime($format, CORE::localtime($time->epoch));
-	}
-	else {
-	    return _strftime($format, CORE::gmtime($time->epoch));
-	}
+        }
+        else {
+            return _strftime($format, CORE::gmtime($time->epoch));
+        }
     }
     return _strftime($format, (@$time)[c_sec..c_isdst]);
 }
