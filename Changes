@@ -1,6 +1,9 @@
 
 Time::Piece Changes
 
+1.11
+    - Skip %V test on Win32
+
 1.10
     - Number of bug fixes from RT
     - (maintenance by Ricardo SIGNES)

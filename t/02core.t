@@ -93,8 +93,11 @@ SKIP: {
 
 cmp_ok($t->strftime('%U'), 'eq', '09'); # Sun cmp Mon
 
-# is this test really broken on Mac OS? -- rjbs, 2006-02-08
-cmp_ok($t->strftime('%V'), 'eq', '09'); # Sun cmp Mon
+SKIP: {
+    skip "can't strftime %V on Win32", 1 if $is_win32;
+    # is this test really broken on Mac OS? -- rjbs, 2006-02-08
+    cmp_ok($t->strftime('%V'), 'eq', '09'); # Sun cmp Mon
+}
 
 cmp_ok($t->strftime('%w'), '==', 2);
 cmp_ok($t->strftime('%W'), 'eq', '09'); # Sun cmp Mon
