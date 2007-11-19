@@ -1,5 +1,5 @@
 #ifdef __cplusplus
-#extern "C" {
+extern "C" {
 #endif
 #include "EXTERN.h"
 #include "perl.h"
@@ -241,9 +241,13 @@ my_mini_mktime(struct tm *ptm)
     ptm->tm_wday = (jday + WEEKDAY_BIAS) % 7;
 }
 
-#if defined(WIN32) /* No strptime on Win32 */
+#if defined(WIN32) || (defined(__QNX__) && defined(__WATCOMC__)) /* No strptime on Win32 or QNX4 */
 #define strncasecmp(x,y,n) strnicmp(x,y,n)
+
+#if defined(WIN32)
 #define alloca _alloca
+#endif
+
 #include <time.h>
 #include <ctype.h>
 #include <string.h>
@@ -755,7 +759,7 @@ label:
 			for (cp = buf; *cp && isupper((unsigned char)*cp); ++cp) 
                             {/*empty*/}
 			if (cp - buf) {
-				zonestr = alloca(cp - buf + 1);
+				zonestr = (char *)alloca(cp - buf + 1);
 				strncpy(zonestr, buf, cp - buf);
 				zonestr[cp - buf] = '\0';
 				tzset();
@@ -799,7 +803,7 @@ MODULE = Time::Piece     PACKAGE = Time::Piece
 
 PROTOTYPES: ENABLE
 
-char *
+void
 _strftime(fmt, sec, min, hour, mday, mon, year, wday = -1, yday = -1, isdst = -1)
     char *        fmt
     int        sec
@@ -886,12 +890,9 @@ _strptime ( string, format )
 	char * string
 	char * format
   PREINIT:
-       char tmpbuf[128];
        struct tm mytm;
        time_t t;
        char * remainder;
-       int len;
-       int tzdiff;
   PPCODE:
        t = 0;
        mytm = *gmtime(&t);

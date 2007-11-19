@@ -1,7 +1,7 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         Time-Piece
-version:      1.11
+version:      1.12
 version_from: Piece.pm
 installdirs:  site
 requires:

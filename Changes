@@ -1,6 +1,10 @@
 
 Time::Piece Changes
 
+1.12
+    - QNX fixes
+    - Merge with perl core version
+
 1.11
     - Skip %V test on Win32
 
