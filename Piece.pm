@@ -1,4 +1,4 @@
-# $Id: Piece.pm 76 2008-03-02 20:15:09Z matt $
+# $Id: Piece.pm 81 2009-05-09 02:31:43Z matt $
 
 package Time::Piece;
 
@@ -22,7 +22,7 @@ our %EXPORT_TAGS = (
     ':override' => 'internal',
     );
 
-our $VERSION = '1.13';
+our $VERSION = '1.14';
 
 bootstrap Time::Piece $VERSION;
 
@@ -607,12 +607,8 @@ sub add_months {
         $final_month = $final_month % 12;
     }
     
-    my $string = ($time->year + $num_years) . "-" .
-                 ($final_month + 1) . "-" .
-                 ($time->mday) . " " . $time->hms;
-    my $format = "%Y-%m-%d %H:%M:%S";
-    #warn("Parsing string: $string\n");
-    my @vals = _strptime($string, $format);
+    my @vals = _mini_mktime($time->sec, $time->min, $time->hour,
+                            $time->mday, $final_month, $time->year - 1900 + $num_years);
 #    warn(sprintf("got vals: %d-%d-%d %d:%d:%d\n", reverse(@vals)));
     return scalar $time->_mktime(\@vals, $time->[c_islocal]);
 }
@@ -823,6 +819,21 @@ Finally, it's possible to override localtime and gmtime everywhere, by
 including the ':override' tag in the import list:
 
     use Time::Piece ':override';
+
+=head1 CAVEATS
+
+=head2 Setting $ENV{TZ} in Threads on Win32
+
+Note that when using perl in the default build configuration on Win32
+(specifically, when perl is built with PERL_IMPLICIT_SYS), each perl
+interpreter maintains its own copy of the environment and only the main
+interpreter will update the process environment seen by strftime.
+
+Therefore, if you make changes to $ENV{TZ} from inside a thread other than
+the main thread then those changes will not be seen by strftime if you
+subsequently call that with the %Z formatting code. You must change $ENV{TZ}
+in the main thread to have the desired effect in this case (and you must
+also call _tzset() in the main thread to register the environment change).
 
 =head1 AUTHOR
 
