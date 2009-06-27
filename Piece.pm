@@ -1,4 +1,4 @@
-# $Id: Piece.pm 81 2009-05-09 02:31:43Z matt $
+# $Id: Piece.pm 82 2009-06-27 13:20:23Z matt $
 
 package Time::Piece;
 
@@ -22,7 +22,7 @@ our %EXPORT_TAGS = (
     ':override' => 'internal',
     );
 
-our $VERSION = '1.14';
+our $VERSION = '1.15';
 
 bootstrap Time::Piece $VERSION;
 
@@ -834,6 +834,9 @@ the main thread then those changes will not be seen by strftime if you
 subsequently call that with the %Z formatting code. You must change $ENV{TZ}
 in the main thread to have the desired effect in this case (and you must
 also call _tzset() in the main thread to register the environment change).
+
+Furthermore, remember that this caveat also applies to fork(), which is
+emulated by threads on Win32.
 
 =head1 AUTHOR
 

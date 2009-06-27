@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               Time-Piece
-version:            1.14
+version:            1.15
 abstract:           Object Oriented time objects
 author:
     - Matt Sergeant
