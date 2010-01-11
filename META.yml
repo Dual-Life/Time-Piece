@@ -1,19 +1,13 @@
 --- #YAML:1.0
-name:               Time-Piece
-version:            1.15
-abstract:           Object Oriented time objects
-author:
+name:                Time-Piece
+version:             1.16
+abstract:            Object Oriented time objects
+license:             ~
+author:              
     - Matt Sergeant
-license:            unknown
-distribution_type:  module
-configure_requires:
-    ExtUtils::MakeMaker:  0
-requires:  {}
-no_index:
-    directory:
-        - t
-        - inc
-generated_by:       ExtUtils::MakeMaker version 6.48
+generated_by:        ExtUtils::MakeMaker version 6.42
+distribution_type:   module
+requires:     
 meta-spec:
-    url:      http://module-build.sourceforge.net/META-spec-v1.4.html
-    version:  1.4
+    url:     http://module-build.sourceforge.net/META-spec-v1.3.html
+    version: 1.3
