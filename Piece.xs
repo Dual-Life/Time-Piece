@@ -303,16 +303,9 @@ my_mini_mktime(struct tm *ptm)
     ptm->tm_wday = (jday + WEEKDAY_BIAS) % 7;
 }
 
-#ifndef HAS_STRPTIME
-    /* Assume everyone has strptime except Win32 and QNX4 */
-#   define HAS_STRPTIME 1
 #   if defined(WIN32) || (defined(__QNX__) && defined(__WATCOMC__))
-#       undef HAS_STRPTIME
+#       define strncasecmp(x,y,n) strnicmp(x,y,n)
 #   endif
-#endif
-
-#ifndef HAS_STRPTIME
-#define strncasecmp(x,y,n) strnicmp(x,y,n)
 
 #if defined(WIN32)
 #if defined(__BORLANDC__)
@@ -922,7 +915,7 @@ label:
 
 
 char *
-strptime(pTHX_ const char *buf, const char *fmt, struct tm *tm)
+our_strptime(pTHX_ const char *buf, const char *fmt, struct tm *tm)
 {
 	char *ret;
 
@@ -939,8 +932,6 @@ pthread_mutex_lock(&gotgmt_mutex);
 
 	return ret;
 }
-
-#endif /* !HAS_STRPTIME */
 
 MODULE = Time::Piece     PACKAGE = Time::Piece
 
@@ -1039,11 +1030,7 @@ _strptime ( string, format )
   PPCODE:
        t = 0;
        mytm = *gmtime(&t);
-#ifdef HAS_STRPTIME
-       remainder = (char *)strptime(string, format, &mytm);
-#else
-       remainder = (char *)strptime(aTHX_ string, format, &mytm);
-#endif
+       remainder = (char *)our_strptime(aTHX_ string, format, &mytm);
        if (remainder == NULL) {
 	  croak("Error parsing time");
        }
@@ -1104,3 +1091,43 @@ _mini_mktime(int sec, int min, int hour, int mday, int mon, int year)
        PUSHs(sv_2mortal(newSViv(0)));
        /* islocal */
        PUSHs(sv_2mortal(newSViv(0)));
+
+void
+_crt_localtime(time_t sec)
+    PREINIT:
+        struct tm mytm;
+    PPCODE:
+        mytm = *localtime(&sec);
+        /* Need to get: $s,$n,$h,$d,$m,$y */
+        
+        EXTEND(SP, 9);
+        PUSHs(sv_2mortal(newSViv(mytm.tm_sec)));
+        PUSHs(sv_2mortal(newSViv(mytm.tm_min)));
+        PUSHs(sv_2mortal(newSViv(mytm.tm_hour)));
+        PUSHs(sv_2mortal(newSViv(mytm.tm_mday)));
+        PUSHs(sv_2mortal(newSViv(mytm.tm_mon)));
+        PUSHs(sv_2mortal(newSViv(mytm.tm_year)));
+        PUSHs(sv_2mortal(newSViv(mytm.tm_year)));
+        PUSHs(sv_2mortal(newSViv(mytm.tm_wday)));
+        PUSHs(sv_2mortal(newSViv(mytm.tm_yday)));
+        PUSHs(sv_2mortal(newSViv(mytm.tm_isdst)));
+        
+void
+_crt_gmtime(time_t sec)
+    PREINIT:
+        struct tm mytm;
+    PPCODE:
+        mytm = *gmtime(&sec);
+        /* Need to get: $s,$n,$h,$d,$m,$y */
+        
+        EXTEND(SP, 9);
+        PUSHs(sv_2mortal(newSViv(mytm.tm_sec)));
+        PUSHs(sv_2mortal(newSViv(mytm.tm_min)));
+        PUSHs(sv_2mortal(newSViv(mytm.tm_hour)));
+        PUSHs(sv_2mortal(newSViv(mytm.tm_mday)));
+        PUSHs(sv_2mortal(newSViv(mytm.tm_mon)));
+        PUSHs(sv_2mortal(newSViv(mytm.tm_year)));
+        PUSHs(sv_2mortal(newSViv(mytm.tm_wday)));
+        PUSHs(sv_2mortal(newSViv(mytm.tm_yday)));
+        PUSHs(sv_2mortal(newSViv(mytm.tm_isdst)));
+        

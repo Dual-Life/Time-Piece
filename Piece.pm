@@ -1,4 +1,4 @@
-# $Id: Piece.pm 90 2010-01-11 21:02:28Z matt $
+# $Id: Piece.pm 91 2010-02-01 21:38:28Z matt $
 
 package Time::Piece;
 
@@ -21,7 +21,7 @@ our %EXPORT_TAGS = (
     ':override' => 'internal',
     );
 
-our $VERSION = '1.16';
+our $VERSION = '1.17';
 
 bootstrap Time::Piece $VERSION;
 
@@ -296,7 +296,9 @@ sub tzoffset {
 
     # Compute floating offset in hours.
     #
-    my $delta = 24 * (&$j(CORE::localtime $epoch) - &$j(CORE::gmtime $epoch));
+    # Note use of crt methods so the tz is properly set...
+    # See: http://perlmonks.org/?node_id=820347
+    my $delta = 24 * ($j->(_crt_localtime($epoch)) - $j->(_crt_gmtime($epoch)));
 
     # Return value in seconds rounded to nearest minute.
     return Time::Seconds->new( int($delta * 60 + ($delta >= 0 ? 0.5 : -0.5)) * 60 );

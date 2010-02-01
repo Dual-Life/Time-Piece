@@ -1,6 +1,12 @@
 
 Time::Piece Changes
 
+1.17
+    - Force all to use internal strptime then everyone gets %z even OSX
+      users.
+    - Finally figured out the timezone test failures on Win32 and fixed
+      them.
+
 1.16
 	- Implement %z for the internal implementation of strptime(). 
 	  Unfortunately this doesn't get picked up everywhere, so there are no 
