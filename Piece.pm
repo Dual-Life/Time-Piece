@@ -1,4 +1,4 @@
-# $Id: Piece.pm 92 2010-02-03 20:44:43Z matt $
+# $Id: Piece.pm 93 2010-02-10 22:37:00Z matt $
 
 package Time::Piece;
 
@@ -21,7 +21,7 @@ our %EXPORT_TAGS = (
     ':override' => 'internal',
     );
 
-our $VERSION = '1.18';
+our $VERSION = '1.19';
 
 bootstrap Time::Piece $VERSION;
 

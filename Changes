@@ -1,6 +1,9 @@
 
 Time::Piece Changes
 
+1.19
+    - Fix for alloca broke FreeBSD
+
 1.18
     - Fix for alloca on IRIX
 

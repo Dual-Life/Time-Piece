@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                Time-Piece
-version:             1.18
+version:             1.19
 abstract:            Object Oriented time objects
 license:             ~
 author:              

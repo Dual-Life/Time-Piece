@@ -314,8 +314,10 @@ void * __cdecl _EXPFUNC alloca(_SIZE_T __size);
 #define alloca _alloca
 #endif
 #else
-/* required for IRIX? */
+#if defined(_SGIAPI) || defined( __sgi )
+/* required for IRIX */
 #include <alloca.h>
+#endif
 #endif
 
 /* strptime copied from freebsd with the following copyright: */
