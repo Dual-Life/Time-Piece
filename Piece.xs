@@ -313,6 +313,9 @@ void * __cdecl _EXPFUNC alloca(_SIZE_T __size);
 #else
 #define alloca _alloca
 #endif
+#else
+/* required for IRIX? */
+#include <alloca.h>
 #endif
 
 /* strptime copied from freebsd with the following copyright: */

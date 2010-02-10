@@ -1,6 +1,9 @@
 
 Time::Piece Changes
 
+1.18
+    - Fix for alloca on IRIX
+
 1.17
     - Force all to use internal strptime then everyone gets %z even OSX
       users.
