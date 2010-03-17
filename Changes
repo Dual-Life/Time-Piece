@@ -1,5 +1,10 @@
-
 Time::Piece Changes
+
+1.20
+    - Fix for alloca broke Solaris
+    - Fixed documentation buggette about strptime
+    - Added ->pretty() method for Time::Seconds objects
+	- Add %s support to strptime
 
 1.19
     - Fix for alloca broke FreeBSD

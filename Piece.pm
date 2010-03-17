@@ -1,5 +1,3 @@
-# $Id: Piece.pm 93 2010-02-10 22:37:00Z matt $
-
 package Time::Piece;
 
 use strict;
@@ -21,7 +19,7 @@ our %EXPORT_TAGS = (
     ':override' => 'internal',
     );
 
-our $VERSION = '1.19';
+our $VERSION = '1.20';
 
 bootstrap Time::Piece $VERSION;
 
@@ -786,10 +784,10 @@ Date comparisons are also possible, using the full suite of "<", ">",
 
 =head2 Date Parsing
 
-Time::Piece links to your C library's strptime() function, allowing
+Time::Piece has a built-in strptime() function (from FreeBSD), allowing
 you incredibly flexible date parsing routines. For example:
 
-  my $t = Time::Piece->strptime("Sun 3rd Nov, 1943",
+  my $t = Time::Piece->strptime("Sunday 3rd Nov, 1943",
                                 "%A %drd %b, %Y");
   
   print $t->strftime("%a, %d %b %Y");
@@ -802,6 +800,8 @@ Outputs:
 
 For more information see "man strptime", which should be on all unix
 systems.
+
+Alternatively look here: http://www.unix.com/man-page/FreeBSD/3/strftime/
 
 =head2 YYYY-MM-DDThh:mm:ss
 

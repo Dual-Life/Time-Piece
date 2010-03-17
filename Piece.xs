@@ -314,8 +314,8 @@ void * __cdecl _EXPFUNC alloca(_SIZE_T __size);
 #define alloca _alloca
 #endif
 #else
-#if defined(_SGIAPI) || defined( __sgi )
-/* required for IRIX */
+#if defined(_SGIAPI) || defined( __sgi ) || ( defined (__SVR4) && defined (__sun) )
+/* required for IRIX and Solaris */
 #include <alloca.h>
 #endif
 #endif
@@ -467,13 +467,17 @@ _strptime(pTHX_ const char *buf, const char *fmt, struct tm *tm)
 		len;
 	int Ealternative, Oalternative;
 
+    /* There seems to be a slightly improved version at
+     * http://www.opensource.apple.com/source/Libc/Libc-583/stdtime/strptime-fbsd.c
+     * which we may end up borrowing more from
+     */
 	ptr = fmt;
 	while (*ptr != 0) {
 		if (*buf == 0)
 			break;
 
 		c = *ptr++;
-
+		
 		if (c != '%') {
 			if (isspace((unsigned char)c))
 				while (*buf != 0 && isspace((unsigned char)*buf))
@@ -563,6 +567,14 @@ label:
 				return 0;
 			break;
 
+		case 'n': /* whitespace */
+		case 't':
+			if (!isspace((unsigned char)*buf))
+				return 0;
+			while (isspace((unsigned char)*buf))
+				buf++;
+			break;
+		
 		case 'T':
 			buf = _strptime(aTHX_ buf, "%H:%M:%S", tm);
 			if (buf == 0)
@@ -639,7 +651,7 @@ label:
 			 * XXX The %l specifier may gobble one too many
 			 * digits if used incorrectly.
 			 */
-                        if (!isdigit((unsigned char)*buf))
+            if (!isdigit((unsigned char)*buf))
 				return 0;
 
 			len = 2;
@@ -666,7 +678,7 @@ label:
 			 * XXX This is bogus if parsed before hour-related
 			 * specifiers.
 			 */
-                        len = strlen(Locale->am);
+            len = strlen(Locale->am);
 			if (strncasecmp(buf, Locale->am, len) == 0) {
 				if (tm->tm_hour > 12)
 					return 0;
@@ -720,7 +732,7 @@ label:
 			 * point to calculate a real value, so just check the
 			 * range for now.
 			 */
-                        if (!isdigit((unsigned char)*buf))
+            if (!isdigit((unsigned char)*buf))
 				return 0;
 
 			len = 2;
@@ -834,6 +846,38 @@ label:
 			if (*buf != 0 && isspace((unsigned char)*buf))
 				while (*ptr != 0 && !isspace((unsigned char)*ptr))
 					ptr++;
+			break;
+
+		case 's':
+			{
+			char *cp;
+			int sverrno;
+			long n;
+			time_t t;
+            struct tm mytm;
+
+			sverrno = errno;
+			errno = 0;
+			n = strtol(buf, &cp, 10);
+			if (errno == ERANGE || (long)(t = n) != n) {
+				errno = sverrno;
+				return 0;
+			}
+			errno = sverrno;
+			buf = cp;
+            memset(&mytm, 0, sizeof(mytm));
+            my_init_tm(&mytm);    /* XXX workaround - see my_init_tm() above */
+            mytm = *gmtime(&t);
+            tm->tm_sec    = mytm.tm_sec;
+            tm->tm_min    = mytm.tm_min;
+            tm->tm_hour   = mytm.tm_hour;
+            tm->tm_mday   = mytm.tm_mday;
+            tm->tm_mon    = mytm.tm_mon;
+            tm->tm_year   = mytm.tm_year;
+            tm->tm_wday   = mytm.tm_wday;
+            tm->tm_yday   = mytm.tm_yday;
+            tm->tm_isdst  = mytm.tm_isdst;
+			}
 			break;
 
 		case 'Y':
@@ -1037,7 +1081,7 @@ _strptime ( string, format )
        mytm = *gmtime(&t);
        remainder = (char *)our_strptime(aTHX_ string, format, &mytm);
        if (remainder == NULL) {
-	  croak("Error parsing time");
+           croak("Error parsing time");
        }
        if (*remainder != '\0') {
            warn("garbage at end of string in strptime: %s", remainder);
