@@ -8,4 +8,9 @@ WriteMakefile(
     'AUTHOR' => 'Matt Sergeant',
     'ABSTRACT_FROM' => 'Piece.pm',
     'INSTALLDIRS' => ( ($] >= 5.009005 and $] < 5.011) ? 'perl' : 'site'),
+    'META_MERGE'        => {
+        'resources' => {
+            'repository'  =>  'https://github.com/rjbs/Time-Piece',
+        },
+    },
 );
