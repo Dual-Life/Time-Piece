@@ -10,4 +10,9 @@ WriteMakefile(
     'INSTALLDIRS' => ( ($] >= 5.009005 and $] < 5.011) ? 'perl' : 'site'),
     'PREREQ_PM' => { Exporter => '5.57' },
      (eval { ExtUtils::MakeMaker->VERSION(6.21) } ? (LICENSE => 'perl') : ()),
+    'META_MERGE'        => {
+        'resources' => {
+            'repository'  =>  'https://github.com/rjbs/Time-Piece',
+        },
+    },
 );
