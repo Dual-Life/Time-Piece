@@ -178,6 +178,8 @@ sub pretty {
 1;
 __END__
 
+=encoding utf8
+
 =head1 NAME
 
 Time::Seconds - a simple API to convert seconds to other date values
@@ -244,7 +246,7 @@ Matt Sergeant, matt@sergeant.org
 
 Tobias Brox, tobiasb@tobiasb.funcom.com
 
-Bal�zs Szab� (dLux), dlux@kapu.hu
+Balázs Szabó (dLux), dlux@kapu.hu
 
 =head1 LICENSE
 
