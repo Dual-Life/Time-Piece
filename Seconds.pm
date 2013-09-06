@@ -1,6 +1,7 @@
 package Time::Seconds;
 use strict;
 use vars qw/@EXPORT @EXPORT_OK @ISA/;
+use Exporter;
 
 our $VERSION = '1.22';
 
