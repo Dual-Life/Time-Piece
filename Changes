@@ -1,5 +1,11 @@
 Time::Piece Changes
 
+1.23      2013-09-06
+        - add a LICENSE file (thanks, John Peacock!)
+        - make sure Time::Seconds loads Exporter, which it relies on (thanks,
+          GFUJI and TOKUHIROM!)
+        - fix day of year parsing (like "%y%j") (thanks, Doug Wilson)
+
 1.22      2013-08-12
           - add explicit copyright and license statements
           - fix encoding of .pm files and add =encoding directive
