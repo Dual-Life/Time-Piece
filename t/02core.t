@@ -1,4 +1,4 @@
-use Test::More tests => 96;
+use Test::More tests => 101;
 
 my $is_win32 = ($^O =~ /Win32/);
 my $is_qnx = ($^O eq 'qnx');
@@ -126,6 +126,12 @@ cmp_ok($t->strftime('%W'), 'eq', '09'); # Sun cmp Mon
 
 cmp_ok($t->strftime('%y'), '==', 0); # should test with 1999
 cmp_ok($t->strftime('%Y'), 'eq', '2000');
+
+cmp_ok($t->strftime('%z'), 'eq', '+0000');
+cmp_ok($t->strftime('%%%z'), 'eq', '%+0000');
+cmp_ok($t->strftime('%%z%z'), 'eq', '%z+0000');
+cmp_ok($t->strftime('%Z'), 'eq', 'UTC');
+cmp_ok($t->strftime('%%Z%Z'), 'eq', '%ZUTC');
 
 # %Z is locale and implementation dependent
 # (there is NO standard for timezone names)
