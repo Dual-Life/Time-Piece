@@ -1,5 +1,8 @@
 Revision history for Time-Piece
 
+1.24      2013-12-03
+        - add repository metadata (thanks, David Steinbrunner)
+
 1.23      2013-09-06
         - add a LICENSE file (thanks, John Peacock!)
         - make sure Time::Seconds loads Exporter, which it relies on (thanks,
