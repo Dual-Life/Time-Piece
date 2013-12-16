@@ -966,6 +966,30 @@ our_strptime(pTHX_ const char *buf, const char *fmt, struct tm *tm)
 	return _strptime(aTHX_ buf, fmt, tm, &got_GMT);
 }
 
+/* Saves alot of machine code.
+   Takes a (auto) SP, which may or may not have been PUSHed before, puts
+   tm struct members on Perl stack, then returns new, advanced, SP to caller.
+   Assign the return of push_common_tm to your SP, so you can continue to PUSH
+   or do a PUTBACK and return eventually.
+   !!!! push_common_tm does not touch PL_stack_sp !!!!
+   !!!! do not use PUTBACK then SPAGAIN semantics around push_common_tm !!!!
+   !!!! You must mortalize whatever push_common_tm put on stack yourself to
+        avoid leaking !!!!
+*/
+SV **
+push_common_tm(pTHX_ SV ** SP, struct tm *mytm)
+{
+	PUSHs(newSViv(mytm->tm_sec));
+	PUSHs(newSViv(mytm->tm_min));
+	PUSHs(newSViv(mytm->tm_hour));
+	PUSHs(newSViv(mytm->tm_mday));
+	PUSHs(newSViv(mytm->tm_mon));
+	PUSHs(newSViv(mytm->tm_year));
+	PUSHs(newSViv(mytm->tm_wday));
+	PUSHs(newSViv(mytm->tm_yday));
+	return SP;
+}
+
 MODULE = Time::Piece     PACKAGE = Time::Piece
 
 PROTOTYPES: ENABLE
@@ -1049,8 +1073,9 @@ _strftime(fmt, sec, min, hour, mday, mon, year, wday = -1, yday = -1, isdst = -1
 void
 _tzset()
   PPCODE:
+    PUTBACK; /* makes rest of this function tailcall friendly */
     my_tzset(aTHX);
-
+    return; /* skip XSUBPP's PUTBACK */
 
 void
 _strptime ( string, format )
@@ -1076,20 +1101,24 @@ _strptime ( string, format )
   /* warn("tm: %d-%d-%d %d:%d:%d\n", mytm.tm_year, mytm.tm_mon, mytm.tm_mday, mytm.tm_hour, mytm.tm_min, mytm.tm_sec); */
 	  
        EXTEND(SP, 11);
-       PUSHs(sv_2mortal(newSViv(mytm.tm_sec)));
-       PUSHs(sv_2mortal(newSViv(mytm.tm_min)));
-       PUSHs(sv_2mortal(newSViv(mytm.tm_hour)));
-       PUSHs(sv_2mortal(newSViv(mytm.tm_mday)));
-       PUSHs(sv_2mortal(newSViv(mytm.tm_mon)));
-       PUSHs(sv_2mortal(newSViv(mytm.tm_year)));
-       PUSHs(sv_2mortal(newSViv(mytm.tm_wday)));
-       PUSHs(sv_2mortal(newSViv(mytm.tm_yday)));
+       SP = push_common_tm(aTHX_ SP, &mytm);
        /* isdst */
-       PUSHs(sv_2mortal(newSViv(0)));
+       PUSHs(newSViv(0));
        /* epoch */
-       PUSHs(sv_2mortal(newSViv(0)));
+       PUSHs(newSViv(0));
        /* islocal */
-       PUSHs(sv_2mortal(newSViv(0)));
+       PUSHs(newSViv(0));
+       PUTBACK;
+       {
+            SV ** endsp = SP; /* the SV * under SP needs to be mortaled */
+            SP -= (11 - 1); /* subtract 0 based count of SVs to mortal */
+/* mortal target of SP, then increment before function call
+   so SP is already calculated before next comparison to not stall CPU */
+            do {
+                sv_2mortal(*SP++);
+            } while(SP <= endsp);
+       }
+       return;
 
 void
 _mini_mktime(int sec, int min, int hour, int mday, int mon, int year)
@@ -1110,20 +1139,24 @@ _mini_mktime(int sec, int min, int hour, int mday, int mon, int year)
        my_mini_mktime(&mytm);
 
        EXTEND(SP, 11);
-       PUSHs(sv_2mortal(newSViv(mytm.tm_sec)));
-       PUSHs(sv_2mortal(newSViv(mytm.tm_min)));
-       PUSHs(sv_2mortal(newSViv(mytm.tm_hour)));
-       PUSHs(sv_2mortal(newSViv(mytm.tm_mday)));
-       PUSHs(sv_2mortal(newSViv(mytm.tm_mon)));
-       PUSHs(sv_2mortal(newSViv(mytm.tm_year)));
-       PUSHs(sv_2mortal(newSViv(mytm.tm_wday)));
-       PUSHs(sv_2mortal(newSViv(mytm.tm_yday)));
+       SP = push_common_tm(aTHX_ SP, &mytm);
        /* isdst */
-       PUSHs(sv_2mortal(newSViv(0)));
+       PUSHs(newSViv(0));
        /* epoch */
-       PUSHs(sv_2mortal(newSViv(0)));
+       PUSHs(newSViv(0));
        /* islocal */
-       PUSHs(sv_2mortal(newSViv(0)));
+       PUSHs(newSViv(0));
+       PUTBACK;
+       {
+            SV ** endsp = SP; /* the SV * under SP needs to be mortaled */
+            SP -= (11 - 1); /* subtract 0 based count of SVs to mortal */
+/* mortal target of SP, then increment before function call
+   so SP is already calculated before next comparison to not stall CPU */
+            do {
+                sv_2mortal(*SP++);
+            } while(SP <= endsp);
+       }
+       return;
 
 void
 _crt_localtime(time_t sec)
@@ -1134,17 +1167,20 @@ _crt_localtime(time_t sec)
         /* Need to get: $s,$n,$h,$d,$m,$y */
         
         EXTEND(SP, 9);
-        PUSHs(sv_2mortal(newSViv(mytm.tm_sec)));
-        PUSHs(sv_2mortal(newSViv(mytm.tm_min)));
-        PUSHs(sv_2mortal(newSViv(mytm.tm_hour)));
-        PUSHs(sv_2mortal(newSViv(mytm.tm_mday)));
-        PUSHs(sv_2mortal(newSViv(mytm.tm_mon)));
-        PUSHs(sv_2mortal(newSViv(mytm.tm_year)));
-        PUSHs(sv_2mortal(newSViv(mytm.tm_year)));
-        PUSHs(sv_2mortal(newSViv(mytm.tm_wday)));
-        PUSHs(sv_2mortal(newSViv(mytm.tm_yday)));
-        PUSHs(sv_2mortal(newSViv(mytm.tm_isdst)));
-        
+        SP = push_common_tm(aTHX_ SP, &mytm);
+        PUSHs(newSViv(mytm.tm_isdst));
+        PUTBACK;
+        {
+            SV ** endsp = SP; /* the SV * under SP needs to be mortaled */
+            SP -= (9 - 1); /* subtract 0 based count of SVs to mortal */
+/* mortal target of SP, then increment before function call
+   so SP is already calculated before next comparison to not stall CPU */
+            do {
+                sv_2mortal(*SP++);
+            } while(SP <= endsp);
+        }
+        return;
+
 void
 _crt_gmtime(time_t sec)
     PREINIT:
@@ -1154,13 +1190,16 @@ _crt_gmtime(time_t sec)
         /* Need to get: $s,$n,$h,$d,$m,$y */
         
         EXTEND(SP, 9);
-        PUSHs(sv_2mortal(newSViv(mytm.tm_sec)));
-        PUSHs(sv_2mortal(newSViv(mytm.tm_min)));
-        PUSHs(sv_2mortal(newSViv(mytm.tm_hour)));
-        PUSHs(sv_2mortal(newSViv(mytm.tm_mday)));
-        PUSHs(sv_2mortal(newSViv(mytm.tm_mon)));
-        PUSHs(sv_2mortal(newSViv(mytm.tm_year)));
-        PUSHs(sv_2mortal(newSViv(mytm.tm_wday)));
-        PUSHs(sv_2mortal(newSViv(mytm.tm_yday)));
-        PUSHs(sv_2mortal(newSViv(mytm.tm_isdst)));
-        
+        SP = push_common_tm(aTHX_ SP, &mytm);
+        PUSHs(newSViv(mytm.tm_isdst));
+        PUTBACK;
+        {
+            SV ** endsp = SP; /* the SV * under SP needs to be mortaled */
+            SP -= (9 - 1); /* subtract 0 based count of SVs to mortal */
+/* mortal target of SP, then increment before function call
+   so SP is already calculated before next comparison to not stall CPU */
+            do {
+                sv_2mortal(*SP++);
+            } while(SP <= endsp);
+        }
+        return;
