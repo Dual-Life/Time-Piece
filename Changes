@@ -1,5 +1,14 @@
 Revision history for Time-Piece
 
+1.2?      2013-??-??
+        - fix compiling for WinCE, execution is untested
+        - add a .gitignore (from Win32::API)
+        - fix a compiler warning about unused var, and add inlining
+        - add PERL_NO_GET_CONTEXT to XS to bring the binary into 21st century
+        - refactor XS code to remove large sections of duplicate machine code
+        - fix _crt_localtime to return year only once, previously
+          _crt_localtime returned year (item #6) twice in the list
+
 1.24      2013-12-03
         - add repository metadata (thanks, David Steinbrunner)
 
