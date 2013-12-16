@@ -1,12 +1,21 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#define PERL_NO_GET_CONTEXT
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
 #include <time.h>
 #ifdef __cplusplus
 }
+#endif
+
+#ifdef INLINE
+#  define TP_INLINE INLINE /* TP = Time::Piece */
+#elif defined(_MSC_VER)
+#  define TP_INLINE __forceinline /* __inline often doesn't work in O1 */
+#else
+#  define TP_INLINE inline
 #endif
 
 /* XXX struct tm on some systems (SunOS4/BSD) contains extra (non POSIX)
@@ -133,6 +142,10 @@ my_init_tm(struct tm *ptm)        /* see mktime, strftime and asctime    */
 
 #undef getenv
 #undef putenv
+#  ifdef UNDER_CE
+#    define getenv xcegetenv
+#    define putenv xceputenv
+#  endif
 #undef malloc
 #undef free
 
@@ -945,10 +958,9 @@ label:
 }
 
 
-char *
+TP_INLINE char *
 our_strptime(pTHX_ const char *buf, const char *fmt, struct tm *tm)
 {
-	char *ret;
 	int got_GMT = 0;
 
 	return _strptime(aTHX_ buf, fmt, tm, &got_GMT);
