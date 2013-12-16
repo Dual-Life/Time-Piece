@@ -990,6 +990,41 @@ push_common_tm(pTHX_ SV ** SP, struct tm *mytm)
 	return SP;
 }
 
+/* specialized common end of 2 XSUBs
+  SV ** SP -- pass your (auto) SP, which has not been PUSHed before, but was
+              reset to 0 (PPCODE only or SP -= items or XSprePUSH)
+  tm *mytm -- a tm *, will be proprocessed with my_mini_mktime
+  return   -- none, after calling return_11part_tm, you must call "return;"
+              no exceptions
+*/
+void
+return_11part_tm(pTHX_ SV ** SP, struct tm *mytm)
+{
+       my_mini_mktime(mytm);
+
+  /* warn("tm: %d-%d-%d %d:%d:%d\n", mytm.tm_year, mytm.tm_mon, mytm.tm_mday, mytm.tm_hour, mytm.tm_min, mytm.tm_sec); */
+
+       EXTEND(SP, 11);
+       SP = push_common_tm(aTHX_ SP, mytm);
+       /* isdst */
+       PUSHs(newSViv(0));
+       /* epoch */
+       PUSHs(newSViv(0));
+       /* islocal */
+       PUSHs(newSViv(0));
+       PUTBACK;
+       {
+            SV ** endsp = SP; /* the SV * under SP needs to be mortaled */
+            SP -= (11 - 1); /* subtract 0 based count of SVs to mortal */
+/* mortal target of SP, then increment before function call
+   so SP is already calculated before next comparison to not stall CPU */
+            do {
+                sv_2mortal(*SP++);
+            } while(SP <= endsp);
+       }
+       return;
+}
+
 MODULE = Time::Piece     PACKAGE = Time::Piece
 
 PROTOTYPES: ENABLE
@@ -1095,29 +1130,8 @@ _strptime ( string, format )
        if (*remainder != '\0') {
            warn("garbage at end of string in strptime: %s", remainder);
        }
-	  
-       my_mini_mktime(&mytm);
 
-  /* warn("tm: %d-%d-%d %d:%d:%d\n", mytm.tm_year, mytm.tm_mon, mytm.tm_mday, mytm.tm_hour, mytm.tm_min, mytm.tm_sec); */
-	  
-       EXTEND(SP, 11);
-       SP = push_common_tm(aTHX_ SP, &mytm);
-       /* isdst */
-       PUSHs(newSViv(0));
-       /* epoch */
-       PUSHs(newSViv(0));
-       /* islocal */
-       PUSHs(newSViv(0));
-       PUTBACK;
-       {
-            SV ** endsp = SP; /* the SV * under SP needs to be mortaled */
-            SP -= (11 - 1); /* subtract 0 based count of SVs to mortal */
-/* mortal target of SP, then increment before function call
-   so SP is already calculated before next comparison to not stall CPU */
-            do {
-                sv_2mortal(*SP++);
-            } while(SP <= endsp);
-       }
+       return_11part_tm(aTHX_ SP, &mytm);
        return;
 
 void
@@ -1135,58 +1149,19 @@ _mini_mktime(int sec, int min, int hour, int mday, int mon, int year)
        mytm.tm_mday = mday;
        mytm.tm_mon = mon;
        mytm.tm_year = year;
-       
-       my_mini_mktime(&mytm);
 
-       EXTEND(SP, 11);
-       SP = push_common_tm(aTHX_ SP, &mytm);
-       /* isdst */
-       PUSHs(newSViv(0));
-       /* epoch */
-       PUSHs(newSViv(0));
-       /* islocal */
-       PUSHs(newSViv(0));
-       PUTBACK;
-       {
-            SV ** endsp = SP; /* the SV * under SP needs to be mortaled */
-            SP -= (11 - 1); /* subtract 0 based count of SVs to mortal */
-/* mortal target of SP, then increment before function call
-   so SP is already calculated before next comparison to not stall CPU */
-            do {
-                sv_2mortal(*SP++);
-            } while(SP <= endsp);
-       }
+       return_11part_tm(aTHX_ SP, &mytm);
        return;
 
 void
 _crt_localtime(time_t sec)
+    ALIAS:
+        _crt_gmtime = 1
     PREINIT:
         struct tm mytm;
     PPCODE:
-        mytm = *localtime(&sec);
-        /* Need to get: $s,$n,$h,$d,$m,$y */
-        
-        EXTEND(SP, 9);
-        SP = push_common_tm(aTHX_ SP, &mytm);
-        PUSHs(newSViv(mytm.tm_isdst));
-        PUTBACK;
-        {
-            SV ** endsp = SP; /* the SV * under SP needs to be mortaled */
-            SP -= (9 - 1); /* subtract 0 based count of SVs to mortal */
-/* mortal target of SP, then increment before function call
-   so SP is already calculated before next comparison to not stall CPU */
-            do {
-                sv_2mortal(*SP++);
-            } while(SP <= endsp);
-        }
-        return;
-
-void
-_crt_gmtime(time_t sec)
-    PREINIT:
-        struct tm mytm;
-    PPCODE:
-        mytm = *gmtime(&sec);
+        if(ix) mytm = *gmtime(&sec);
+        else mytm = *localtime(&sec);
         /* Need to get: $s,$n,$h,$d,$m,$y */
         
         EXTEND(SP, 9);
