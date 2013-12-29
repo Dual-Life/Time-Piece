@@ -2,7 +2,7 @@ package Time::Seconds;
 use strict;
 use vars qw/@EXPORT @EXPORT_OK/;
 
-our $VERSION = '1.25_01';
+our $VERSION = '1.26';
 
 use Exporter 5.57 'import';
 
