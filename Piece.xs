@@ -14,6 +14,8 @@ extern "C" {
 #  define TP_INLINE INLINE /* TP = Time::Piece */
 #elif defined(_MSC_VER)
 #  define TP_INLINE __forceinline /* __inline often doesn't work in O1 */
+#elif defined(__SUNPRO_C)
+#  define TP_INLINE static inline
 #else
 #  define TP_INLINE inline
 #endif
