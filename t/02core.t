@@ -1,4 +1,4 @@
-use Test::More tests => 96;
+use Test::More tests => 98;
 
 my $is_win32 = ($^O =~ /Win32/);
 my $is_qnx = ($^O eq 'qnx');
@@ -227,3 +227,16 @@ cmp_ok(
   951827696
 );
 
+eval { Time::Piece->strptime("2014", '%Y%m') };
+like(
+  $@,
+  qr/Error parsing time/,
+  "croak if passed string wasn't enough to match with format"
+);
+
+eval { Time::Piece->strptime("", '%y') };
+like(
+  $@,
+  qr/Error parsing time/,
+  "croak if empty string passed to strptime with non-empty format"
+);

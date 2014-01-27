@@ -455,8 +455,12 @@ _strptime(pTHX_ const char *buf, const char *fmt, struct tm *tm, int *got_GMT)
      */
 	ptr = fmt;
 	while (*ptr != 0) {
-		if (*buf == 0)
-			break;
+		if (*buf == 0) {
+			/* trailing whitespace is allowed */
+			while (isspace((unsigned char)*ptr))
+				ptr++;
+			return (*ptr == 0) ? (char *)buf : 0;
+		}
 
 		c = *ptr++;
 		
