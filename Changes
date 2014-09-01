@@ -1,5 +1,8 @@
 Revision history for Time-Piece
 
+1.28      2014-09-01
+        - when pretty printing negative Time::Seconds, do not lose the "minus"
+
 1.27      2014-01-03
         - portability fixes for XS changes in 1.25_01
 
