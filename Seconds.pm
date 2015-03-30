@@ -12,9 +12,7 @@ use Exporter 5.57 'import';
     ONE_DAY 
     ONE_WEEK 
     ONE_MONTH
-    ONE_REAL_MONTH
     ONE_YEAR
-    ONE_REAL_YEAR
     ONE_FINANCIAL_MONTH
     LEAP_YEAR 
     NON_LEAP_YEAR
@@ -27,9 +25,7 @@ use constant ONE_HOUR => 3_600;
 use constant ONE_DAY => 86_400;
 use constant ONE_WEEK => 604_800;
 use constant ONE_MONTH => 2_629_744; # ONE_YEAR / 12
-use constant ONE_REAL_MONTH => '1M';
 use constant ONE_YEAR => 31_556_930; # 365.24225 days
-use constant ONE_REAL_YEAR  => '1Y';
 use constant ONE_FINANCIAL_MONTH => 2_592_000; # 30 days
 use constant LEAP_YEAR => 31_622_400; # 366 * ONE_DAY
 use constant NON_LEAP_YEAR => 31_536_000; # 365 * ONE_DAY
