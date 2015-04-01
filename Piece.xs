@@ -1013,7 +1013,7 @@ MODULE = Time::Piece     PACKAGE = Time::Piece
 PROTOTYPES: ENABLE
 
 void
-_strftime(fmt, sec, min, hour, mday, mon, year, wday = -1, yday = -1, isdst = -1)
+_strftime(fmt, sec, min, hour, mday, mon, year, wday = -1, yday = -1, isdst = -1, islocal = 1)
     char *        fmt
     int        sec
     int        min
@@ -1024,12 +1024,12 @@ _strftime(fmt, sec, min, hour, mday, mon, year, wday = -1, yday = -1, isdst = -1
     int        wday
     int        yday
     int        isdst
+    int        islocal
     CODE:
     {
         char tmpbuf[128];
         struct tm mytm;
         int len;
-        memset(&mytm, 0, sizeof(mytm));
         my_init_tm(&mytm);    /* XXX workaround - see my_init_tm() above */
         mytm.tm_sec = sec;
         mytm.tm_min = min;
@@ -1041,6 +1041,15 @@ _strftime(fmt, sec, min, hour, mday, mon, year, wday = -1, yday = -1, isdst = -1
         mytm.tm_yday = yday;
         mytm.tm_isdst = isdst;
         my_mini_mktime(&mytm);
+
+        /* set correct gmt offset and zone if gmtime was used [perl #93095]*/
+#if defined(HAS_TM_TM_GMTOFF) && defined(HAS_TM_TM_ZONE)
+        if(! islocal){
+            mytm.tm_gmtoff = 0;
+            mytm.tm_zone = "UTC";
+        }
+#endif
+
         len = strftime(tmpbuf, sizeof tmpbuf, fmt, &mytm);
         /*
         ** The following is needed to handle to the situation where 

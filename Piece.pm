@@ -456,10 +456,10 @@ sub strftime {
             return _strftime($format, CORE::localtime($time->epoch));
         }
         else {
-            return _strftime($format, CORE::gmtime($time->epoch));
+            return _strftime($format, CORE::gmtime($time->epoch), $time->[c_islocal]);
         }
     }
-    return _strftime($format, (@$time)[c_sec..c_isdst]);
+    return _strftime($format, (@$time)[c_sec..c_isdst], $time->[c_islocal]);
 }
 
 sub strptime {

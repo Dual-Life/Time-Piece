@@ -2,6 +2,7 @@ Revision history for Time-Piece
 
 1.29_01   2015-03-30
         - Fix handling of %Z in strftime (in progress)
+        - Remove unused constants from Time::Seconds (Thanks Xaerxess!)
 
 1.29      2014-09-01
         - when pretty printing negative Time::Seconds, do not lose the "minus"
