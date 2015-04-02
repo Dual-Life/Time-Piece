@@ -1040,7 +1040,13 @@ _strftime(fmt, sec, min, hour, mday, mon, year, wday = -1, yday = -1, isdst = -1
         mytm.tm_wday = wday;
         mytm.tm_yday = yday;
         mytm.tm_isdst = isdst;
+
+        /* system mktime supports future/past dates better */
+#if defined(HAS_MKTIME)
+        mktime(&mytm);
+#else
         my_mini_mktime(&mytm);
+#endif
 
         /* set correct gmt offset and zone if gmtime was used [perl #93095]*/
 #if defined(HAS_TM_TM_GMTOFF) && defined(HAS_TM_TM_ZONE)
