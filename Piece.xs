@@ -312,6 +312,7 @@ my_mini_mktime(struct tm *ptm)
 #       define strncasecmp(x,y,n) strnicmp(x,y,n)
 #   endif
 
+/* strptime.c    0.1 (Powerdog) 94/03/27 */
 /* strptime copied from freebsd with the following copyright: */
 /*
  * Copyright (c) 1994 Powerdog Industries.  All rights reserved.
@@ -319,18 +320,14 @@ my_mini_mktime(struct tm *ptm)
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
+ *
  * 1. Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
+ *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer
  *    in the documentation and/or other materials provided with the
  *    distribution.
- * 3. All advertising materials mentioning features or use of this
- *    software must display the following acknowledgement:
- *      This product includes software developed by Powerdog Industries.
- * 4. The name of Powerdog Industries may not be used to endorse or
- *    promote products derived from this software without specific prior
- *    written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY POWERDOG INDUSTRIES ``AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -343,15 +340,11 @@ my_mini_mktime(struct tm *ptm)
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
  * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * The views and conclusions contained in the software and documentation
+ * are those of the authors and should not be interpreted as representing
+ * official policies, either expressed or implied, of Powerdog Industries.
  */
- 
-#ifndef lint
-#ifndef NOID
-static char copyright[] =
-"@(#) Copyright (c) 1994 Powerdog Industries.  All rights reserved.";
-static char sccsid[] = "@(#)strptime.c	0.1 (Powerdog) 94/03/27";
-#endif /* !defined NOID */
-#endif /* not lint */
 
 #include <time.h>
 #include <ctype.h>
