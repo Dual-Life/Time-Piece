@@ -345,11 +345,12 @@ my_mini_mktime(struct tm *ptm)
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
  
+#define NOID
 #ifndef lint
 #ifndef NOID
-static char copyright[] =
+static const char copyright[] =
 "@(#) Copyright (c) 1994 Powerdog Industries.  All rights reserved.";
-static char sccsid[] = "@(#)strptime.c	0.1 (Powerdog) 94/03/27";
+static const char sccsid[] = "@(#)strptime.c	0.1 (Powerdog) 94/03/27";
 #endif /* !defined NOID */
 #endif /* not lint */
 
