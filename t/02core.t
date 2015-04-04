@@ -128,12 +128,12 @@ cmp_ok($t->strftime('%W'), 'eq', '09'); # Sun cmp Mon
 cmp_ok($t->strftime('%y'), '==', 0); # should test with 1999
 cmp_ok($t->strftime('%Y'), 'eq', '2000');
 
+# %Z is locale and implementation dependent (s/// to the rescue)
 cmp_ok($t->strftime('%z'), 'eq', '+0000');
 cmp_ok($t->strftime('%%z%z'), 'eq', '%z+0000');
 cmp_ok($t->strftime('%Z'), 'eq', 'UTC');
 cmp_ok($t->strftime('%%Z%Z'), 'eq', '%ZUTC');
 
-# %Z is locale and implementation dependent
 # (there is NO standard for timezone names)
 cmp_ok($t->date(""), 'eq', '20000229');
 cmp_ok($t->ymd("") , 'eq', '20000229');

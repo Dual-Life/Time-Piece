@@ -447,10 +447,17 @@ sub month_last_day {
     return $MON_LAST[$_mon] + ($_mon == 1 ? _is_leap_year($year) : 0);
 }
 
+my %GMT_REPR = (
+    '%z' => '+0000',
+    '%Z' => 'UTC',
+);
+
 sub strftime {
     my $time = shift;
-    my $tzname = $time->[c_islocal] ? '%Z' : 'UTC';
-    my $format = @_ ? shift(@_) : "%a, %d %b %Y %H:%M:%S $tzname";
+    my $format = @_ ? shift(@_) : '%a, %d %b %Y %H:%M:%S %Z';
+    if (! $time->[c_islocal]) {
+        $format =~ s/(%.)/$GMT_REPR{$1} || $1/eg;
+    }
     if (!defined $time->[c_wday]) {
         if ($time->[c_islocal]) {
             return _strftime($format, CORE::localtime($time->epoch));
