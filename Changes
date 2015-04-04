@@ -1,5 +1,8 @@
 Revision history for Time-Piece
 
+1.29_02   2015-04-04
+        - 
+
 1.29_01   2015-03-30
         - Fix handling of %Z in strftime (in progress)
         - Remove unused constants from Time::Seconds (Thanks Xaerxess!)

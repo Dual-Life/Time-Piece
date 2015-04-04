@@ -1034,7 +1034,7 @@ _strftime(fmt, sec, min, hour, mday, mon, year, wday = -1, yday = -1, isdst = -1
         mytm.tm_yday = yday;
         mytm.tm_isdst = isdst;
 
-        /* system mktime supports future/past dates better */
+        /* system mktime supports future/past dates (with dst) better */
 #if defined(HAS_MKTIME)
         mktime(&mytm);
 #else
@@ -1044,6 +1044,7 @@ _strftime(fmt, sec, min, hour, mday, mon, year, wday = -1, yday = -1, isdst = -1
         /* set correct gmt offset and zone if gmtime was used [perl #93095]*/
 #if defined(HAS_TM_TM_GMTOFF) && defined(HAS_TM_TM_ZONE)
         if(! islocal){
+            mytm.tm_isdst = 0;
             mytm.tm_gmtoff = 0;
             mytm.tm_zone = "UTC";
         }
