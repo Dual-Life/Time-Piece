@@ -1,10 +1,10 @@
 Revision history for Time-Piece
 
 1.29_02   2015-04-04
-        - 
+        - Fix handling of %Z and %z in strftime (hopefully)
 
 1.29_01   2015-03-30
-        - Fix handling of %Z in strftime (in progress)
+        - Fix handling of %Z and %z in strftime (in progress)
         - Remove unused constants from Time::Seconds (Thanks Xaerxess!)
         - _strftime: use system mktime to better support past/future dates
         - Relicense strptime as BSD 2-clause
