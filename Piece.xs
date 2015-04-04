@@ -678,7 +678,7 @@ label:
 
 		case 'A':
 		case 'a':
-			for (i = 0; i < asizeof(Locale->weekday); i++) {
+			for (i = 0; i < (int)asizeof(Locale->weekday); i++) {
 				if (c == 'A') {
 					len = strlen(Locale->weekday[i]);
 					if (strncasecmp(buf,
@@ -693,7 +693,7 @@ label:
 						break;
 				}
 			}
-			if (i == asizeof(Locale->weekday))
+			if (i == (int)asizeof(Locale->weekday))
 				return 0;
 
 			tm->tm_wday = i;
@@ -772,7 +772,7 @@ label:
 		case 'B':
 		case 'b':
 		case 'h':
-			for (i = 0; i < asizeof(Locale->month); i++) {
+			for (i = 0; i < (int)asizeof(Locale->month); i++) {
 				if (Oalternative) {
 					if (c == 'B') {
 						len = strlen(Locale->alt_month[i]);
@@ -797,7 +797,7 @@ label:
 					}
 				}
 			}
-			if (i == asizeof(Locale->month))
+			if (i == (int)asizeof(Locale->month))
 				return 0;
 
 			tm->tm_mon = i;
