@@ -2,12 +2,11 @@ package Time::Piece;
 
 use strict;
 
-require Exporter;
 use Time::Seconds;
 use Carp;
 use Time::Local;
 
-our @ISA = qw(Exporter);
+use Exporter ();
 
 our @EXPORT = qw(
     localtime
@@ -136,10 +135,10 @@ sub import {
     my %params;
     map($params{$_}++,@_,@EXPORT);
     if (delete $params{':override'}) {
-        $class->export('CORE::GLOBAL', keys %params);
+        $class->Exporter::export('CORE::GLOBAL', keys %params);
     }
     else {
-        $class->export((caller)[0], keys %params);
+        $class->Exporter::export((caller)[0], keys %params);
     }
 }
 
