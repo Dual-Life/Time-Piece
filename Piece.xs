@@ -1036,7 +1036,10 @@ _strftime(fmt, sec, min, hour, mday, mon, year, wday = -1, yday = -1, isdst = -1
 
         /* system mktime supports future/past dates (with dst) better */
 #if defined(HAS_MKTIME)
-        mktime(&mytm);
+        if(islocal) /* don't mix gmtime values with mktime */
+            mktime(&mytm);
+        else
+            my_mini_mktime(&mytm);
 #else
         my_mini_mktime(&mytm);
 #endif

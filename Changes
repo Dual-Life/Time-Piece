@@ -12,7 +12,6 @@ Revision history for Time-Piece
         - Remove unused constants from Time::Seconds (Thanks Xaerxess!)
         - _strftime: use system mktime to better support past/future dates
         - Relicense strptime as BSD 2-clause
-        - 
 
 1.29      2014-09-01
         - when pretty printing negative Time::Seconds, do not lose the "minus"
