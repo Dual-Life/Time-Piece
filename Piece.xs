@@ -963,6 +963,7 @@ push_common_tm(pTHX_ SV ** SP, struct tm *mytm)
 	PUSHs(newSViv(mytm->tm_year));
 	PUSHs(newSViv(mytm->tm_wday));
 	PUSHs(newSViv(mytm->tm_yday));
+	PUSHs(newSViv(mytm->tm_isdst));
 	return SP;
 }
 
@@ -979,11 +980,8 @@ return_11part_tm(pTHX_ SV ** SP, struct tm *mytm)
        my_mini_mktime(mytm);
 
   /* warn("tm: %d-%d-%d %d:%d:%d\n", mytm.tm_year, mytm.tm_mon, mytm.tm_mday, mytm.tm_hour, mytm.tm_min, mytm.tm_sec); */
-
        EXTEND(SP, 11);
        SP = push_common_tm(aTHX_ SP, mytm);
-       /* isdst */
-       PUSHs(newSViv(0));
        /* epoch */
        PUSHs(newSViv(0));
        /* islocal */
@@ -1119,6 +1117,7 @@ _strptime ( string, format )
   PPCODE:
        t = 0;
        mytm = *gmtime(&t);
+       mytm.tm_isdst = -1; /* -1 means we don't know */
        got_GMT = 0;
 
        remainder = (char *)_strptime(aTHX_ string, format, &mytm, &got_GMT);

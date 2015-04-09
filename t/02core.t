@@ -218,7 +218,7 @@ cmp_ok(Time::Piece->strptime("2002/06/10 23", '%Y/%m/%d %H')->week, '==', 24);
 # Test that strptime populates all relevant fields
 cmp_ok(Time::Piece->strptime("2002/07/10", '%Y/%m/%d')->wday,  '==', 4);
 cmp_ok(Time::Piece->strptime("2002/12/31", '%Y/%m/%d')->yday,  '==', 364);
-cmp_ok(Time::Piece->strptime("2002/07/10", '%Y/%m/%d')->isdst, '==', 0);
+cmp_ok(Time::Piece->strptime("2002/07/10", '%Y/%m/%d')->isdst, '==', -1);
 cmp_ok(Time::Piece->strptime("2002/07/10", '%Y/%m/%d')->day_of_week, '==', 3);
 
 is(
