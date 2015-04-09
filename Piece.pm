@@ -138,7 +138,7 @@ sub import {
         $class->Exporter::export('CORE::GLOBAL', keys %params);
     }
     else {
-        $class->Exporter::export((caller)[0], keys %params);
+        $class->Exporter::export(scalar caller, keys %params);
     }
 }
 
