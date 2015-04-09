@@ -3,7 +3,7 @@ Revision history for Time-Piece
 1.29_03   2015-04-04
         - Don't mix gmtime and mktime in _strftime
         - Clean whitespace at end of lines
-        - Add tests using DST
+        - Add more tests for DST issues and also strptime parsing
 
 1.29_02   2015-04-04
         - Fix handling of %Z and %z in strftime (hopefully)

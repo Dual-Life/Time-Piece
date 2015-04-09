@@ -1,4 +1,4 @@
-use Test::More tests => 99;
+use Test::More tests => 101;
 
 my $is_win32 = ($^O =~ /Win32/);
 my $is_qnx = ($^O eq 'qnx');
@@ -233,5 +233,19 @@ cmp_ok(
   951827696
 );
 
+#from Time::Piece::Plus
+#test reverse parsing
+my $now = localtime();
+my $strp_format = "%Y-%m-%d %H:%M:%S";
+
+my $now_str = $now->strftime($strp_format);
+
+my $now_parsed = $now->strptime($now_str, $strp_format);
+
+cmp_ok($now_parsed->epoch, '==', $now->epoch);
+cmp_ok($now_parsed->strftime($strp_format), 'eq', $now->strftime($strp_format));
+
+
 my $s = Time::Seconds->new(-691050);
 is($s->pretty, 'minus 7 days, 23 hours, 57 minutes, 30 seconds');
+
