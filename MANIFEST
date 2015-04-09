@@ -1,17 +1,18 @@
 Changes
 LICENSE
 Makefile.PL
-MANIFEST                        This list of files
+MANIFEST			This list of files
 Piece.pm
 Piece.xs
 README
 Seconds.pm
 t/01base.t
 t/02core.t
+t/02core_dst.t
 t/03compare.t
 t/04mjd.t
 t/05overload.t
 t/06subclass.t
 t/07arith.t
-META.yml                                 Module YAML meta-data (added by MakeMaker)
-META.json                                Module JSON meta-data (added by MakeMaker)
+META.yml			Module YAML meta-data (added by MakeMaker)
+META.json			Module JSON meta-data (added by MakeMaker)
