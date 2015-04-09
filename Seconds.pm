@@ -7,14 +7,14 @@ our $VERSION = '1.29';
 use Exporter 5.57 'import';
 
 @EXPORT = qw(
-    ONE_MINUTE 
-    ONE_HOUR 
-    ONE_DAY 
-    ONE_WEEK 
+    ONE_MINUTE
+    ONE_HOUR
+    ONE_DAY
+    ONE_WEEK
     ONE_MONTH
     ONE_YEAR
     ONE_FINANCIAL_MONTH
-    LEAP_YEAR 
+    LEAP_YEAR
     NON_LEAP_YEAR
 );
 
@@ -34,7 +34,7 @@ use constant NON_LEAP_YEAR => 31_536_000; # 365 * ONE_DAY
 use constant cs_sec => 0;
 use constant cs_mon => 1;
 
-use overload 
+use overload
                 'fallback' => 'undef',
                 '0+' => \&seconds,
                 '""' => \&seconds,

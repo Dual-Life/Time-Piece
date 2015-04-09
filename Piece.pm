@@ -62,9 +62,9 @@ sub gmtime {
 sub new {
     my $class = shift;
     my ($time) = @_;
-    
+
     my $self;
-    
+
     if (defined($time)) {
         $self = $class->localtime($time);
     }
@@ -74,7 +74,7 @@ sub new {
     else {
         $self = $class->localtime();
     }
-    
+
     return bless $self, ref($class) || $class;
 }
 
@@ -279,7 +279,7 @@ sub isdst {
 # Thanks to Tony Olekshy <olekshy@cs.ualberta.ca> for this algorithm
 sub tzoffset {
     my $time = shift;
-    
+
     return Time::Seconds->new(0) unless $time->[c_islocal];
 
     my $epoch = $time->epoch;
@@ -557,7 +557,7 @@ sub subtract {
 	# to override this function.
 	return $rhs - "$time";
     }
-    
+
     if (UNIVERSAL::isa($rhs, 'Time::Piece')) {
         return Time::Seconds->new($time->epoch - $rhs->epoch);
     }
@@ -599,9 +599,9 @@ sub compare {
 
 sub add_months {
     my ($time, $num_months) = @_;
-    
+
     croak("add_months requires a number of months") unless defined($num_months);
-    
+
     my $final_month = $time->_mon + $num_months;
     my $num_years = 0;
     if ($final_month > 11 || $final_month < 0) {
@@ -614,10 +614,10 @@ sub add_months {
             $num_years = int($final_month / 12);
         }
         $num_years-- if ($final_month < 0);
-        
+
         $final_month = $final_month % 12;
     }
-    
+
     my @vals = _mini_mktime($time->sec, $time->min, $time->hour,
                             $time->mday, $final_month, $time->year - 1900 + $num_years);
     # warn(sprintf("got %d vals: %d-%d-%d %d:%d:%d [%d]\n", scalar(@vals), reverse(@vals), $time->[c_islocal]));
