@@ -67,7 +67,7 @@ my_init_tm(struct tm *ptm)        /* see mktime, strftime and asctime    */
 #else
 /* use core version from util.c in 5.8.0 and later */
 # define my_init_tm init_tm
-#endif 
+#endif
 
 #ifdef WIN32
 
@@ -359,7 +359,7 @@ struct lc_time_T {
     const char *    month[12];
     const char *    wday[7];
     const char *    weekday[7];
-    const char *    X_fmt;     
+    const char *    X_fmt;
     const char *    x_fmt;
     const char *    c_fmt;
     const char *    am;
@@ -889,7 +889,7 @@ label:
 			const char *cp;
 			char *zonestr;
 
-			for (cp = buf; *cp && isupper((unsigned char)*cp); ++cp) 
+			for (cp = buf; *cp && isupper((unsigned char)*cp); ++cp)
                             {/*empty*/}
 			if (cp - buf) {
 				zonestr = (char *)malloc(cp - buf + 1);
@@ -1055,7 +1055,7 @@ _strftime(fmt, sec, min, hour, mday, mon, year, wday = -1, yday = -1, isdst = -1
 
         len = strftime(tmpbuf, sizeof tmpbuf, fmt, &mytm);
         /*
-        ** The following is needed to handle to the situation where 
+        ** The following is needed to handle to the situation where
         ** tmpbuf overflows.  Basically we want to allocate a buffer
         ** and try repeatedly.  The reason why it is so complicated
         ** is that getting a return value of 0 from strftime can indicate
@@ -1161,7 +1161,7 @@ _crt_localtime(time_t sec)
         if(ix) mytm = *gmtime(&sec);
         else mytm = *localtime(&sec);
         /* Need to get: $s,$n,$h,$d,$m,$y */
-        
+
         EXTEND(SP, 9);
         SP = push_common_tm(aTHX_ SP, &mytm);
         PUSHs(newSViv(mytm.tm_isdst));
