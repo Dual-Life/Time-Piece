@@ -1,4 +1,4 @@
-use Test::More tests => 58;
+use Test::More tests => 60;
 
 my $is_win32 = ($^O =~ /Win32/);
 my $is_qnx = ($^O eq 'qnx');
@@ -124,11 +124,13 @@ cmp_ok($t->month_last_day, '==', 31); # test more
     Time::Piece::_tzset();
     my $lt = localtime(1373371631); #2013-07-09T12:07:11
     cmp_ok(scalar($lt->tzoffset), 'eq', '-14400');
-    cmp_ok($lt->strftime("%Y-%m-%d %H:%M:%S %Z %z"), 'eq', '2013-07-09 08:07:11 EDT -0400');
+    cmp_ok($lt->strftime("%Y-%m-%d %H:%M:%S %Z"), 'eq', '2013-07-09 08:07:11 EDT');
+    like  ($lt->strftime("%z"), qr/-0400|EDT/); #windows: %Z and %z are the same
 
     $lt = localtime(1357733231); #2013-01-09T12:07:11
     cmp_ok(scalar($lt->tzoffset), 'eq', '-18000');
-    cmp_ok($lt->strftime("%Y-%m-%d %H:%M:%S %Z %z"), 'eq', '2013-01-09 07:07:11 EST -0500');
+    cmp_ok($lt->strftime("%Y-%m-%d %H:%M:%S %Z"), 'eq', '2013-01-09 07:07:11 EST');
+    like  ($lt->strftime("%z"), qr/-0500|EST/);
 }
 
 
