@@ -1,5 +1,8 @@
 Revision history for Time-Piece
 
+1.29_04   2015-04-09
+        - Clean inheritance of Exporter and DynaLoader (Thanks dolmen!)
+
 1.29_03   2015-04-04
         - Don't mix gmtime and mktime in _strftime
         - Clean whitespace at end of lines
