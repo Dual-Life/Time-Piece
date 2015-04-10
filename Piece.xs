@@ -1004,52 +1004,20 @@ MODULE = Time::Piece     PACKAGE = Time::Piece
 PROTOTYPES: ENABLE
 
 void
-_strftime(fmt, sec, min, hour, mday, mon, year, wday = -1, yday = -1, isdst = -1, islocal = 1)
-    char *        fmt
-    int        sec
-    int        min
-    int        hour
-    int        mday
-    int        mon
-    int        year
-    int        wday
-    int        yday
-    int        isdst
-    int        islocal
+_strftime(fmt, epoch, islocal = 1)
+    char *      fmt
+    time_t      epoch
+    int         islocal
     CODE:
     {
         char tmpbuf[128];
         struct tm mytm;
         int len;
-        my_init_tm(&mytm);    /* XXX workaround - see my_init_tm() above */
-        mytm.tm_sec = sec;
-        mytm.tm_min = min;
-        mytm.tm_hour = hour;
-        mytm.tm_mday = mday;
-        mytm.tm_mon = mon;
-        mytm.tm_year = year;
-        mytm.tm_wday = wday;
-        mytm.tm_yday = yday;
-        mytm.tm_isdst = isdst;
 
-        /* system mktime supports future/past dates (with dst) better */
-#if defined(HAS_MKTIME)
-        if(islocal) /* don't mix gmtime values with mktime */
-            mktime(&mytm);
+        if(islocal == 1)
+            mytm = *localtime(&epoch);
         else
-            my_mini_mktime(&mytm);
-#else
-        my_mini_mktime(&mytm);
-#endif
-
-        /* set correct gmt offset and zone if gmtime was used [perl #93095]*/
-#if defined(HAS_TM_TM_GMTOFF) && defined(HAS_TM_TM_ZONE)
-        if(! islocal){
-            mytm.tm_isdst = 0;
-            mytm.tm_gmtoff = 0;
-            mytm.tm_zone = "UTC";
-        }
-#endif
+            mytm = *gmtime(&epoch);
 
         len = strftime(tmpbuf, sizeof tmpbuf, fmt, &mytm);
         /*
