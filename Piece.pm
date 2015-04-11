@@ -17,7 +17,7 @@ our %EXPORT_TAGS = (
     ':override' => 'internal',
     );
 
-our $VERSION = '1.29_04';
+our $VERSION = '1.29_05';
 
 require DynaLoader;
 {
