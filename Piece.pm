@@ -33,17 +33,19 @@ my @FULLMON_LIST = qw(January February March April May June July
 my @DAY_LIST = qw(Sun Mon Tue Wed Thu Fri Sat);
 my @FULLDAY_LIST = qw(Sunday Monday Tuesday Wednesday Thursday Friday Saturday);
 
-use constant 'c_sec' => 0;
-use constant 'c_min' => 1;
-use constant 'c_hour' => 2;
-use constant 'c_mday' => 3;
-use constant 'c_mon' => 4;
-use constant 'c_year' => 5;
-use constant 'c_wday' => 6;
-use constant 'c_yday' => 7;
-use constant 'c_isdst' => 8;
-use constant 'c_epoch' => 9;
-use constant 'c_islocal' => 10;
+use constant {
+    'c_sec' => 0,
+    'c_min' => 1,
+    'c_hour' => 2,
+    'c_mday' => 3,
+    'c_mon' => 4,
+    'c_year' => 5,
+    'c_wday' => 6,
+    'c_yday' => 7,
+    'c_isdst' => 8,
+    'c_epoch' => 9,
+    'c_islocal' => 10,
+};
 
 sub localtime {
     unshift @_, __PACKAGE__ unless eval { $_[0]->isa('Time::Piece') };
