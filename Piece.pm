@@ -102,7 +102,9 @@ sub _mktime {
            ? ref $class
            : $class;
     if (ref($time)) {
-        $time->[c_epoch] = undef;
+        my @tm_parts = (@{$time}[c_sec .. c_mon], $time->[c_year]+1900);
+        $time->[c_epoch] = $islocal ? timelocal(@tm_parts) : timegm(@tm_parts);
+
         return wantarray ? @$time : bless [@$time[0..9], $islocal], $class;
     }
     _tzset();
