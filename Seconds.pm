@@ -1,12 +1,11 @@
 package Time::Seconds;
 use strict;
-use vars qw/@EXPORT @EXPORT_OK/;
 
-our $VERSION = '1.29';
+our $VERSION = '1.29_05';
 
 use Exporter 5.57 'import';
 
-@EXPORT = qw(
+our @EXPORT = qw(
     ONE_MINUTE
     ONE_HOUR
     ONE_DAY
@@ -18,32 +17,33 @@ use Exporter 5.57 'import';
     NON_LEAP_YEAR
 );
 
-@EXPORT_OK = qw(cs_sec cs_mon);
+our @EXPORT_OK = qw(cs_sec cs_mon);
 
-use constant ONE_MINUTE => 60;
-use constant ONE_HOUR => 3_600;
-use constant ONE_DAY => 86_400;
-use constant ONE_WEEK => 604_800;
-use constant ONE_MONTH => 2_629_744; # ONE_YEAR / 12
-use constant ONE_YEAR => 31_556_930; # 365.24225 days
-use constant ONE_FINANCIAL_MONTH => 2_592_000; # 30 days
-use constant LEAP_YEAR => 31_622_400; # 366 * ONE_DAY
-use constant NON_LEAP_YEAR => 31_536_000; # 365 * ONE_DAY
-
-# hacks to make Time::Piece compile once again
-use constant cs_sec => 0;
-use constant cs_mon => 1;
+use constant {
+    ONE_MINUTE => 60,
+    ONE_HOUR => 3_600,
+    ONE_DAY => 86_400,
+    ONE_WEEK => 604_800,
+    ONE_MONTH => 2_629_744, # ONE_YEAR / 12
+    ONE_YEAR => 31_556_930, # 365.24225 days
+    ONE_FINANCIAL_MONTH => 2_592_000, # 30 days
+    LEAP_YEAR => 31_622_400, # 366 * ONE_DAY
+    NON_LEAP_YEAR => 31_536_000, # 365 * ONE_DAY
+    # hacks to make Time::Piece compile once again
+    cs_sec => 0,
+    cs_mon => 1,
+};
 
 use overload
-                'fallback' => 'undef',
-                '0+' => \&seconds,
-                '""' => \&seconds,
-                '<=>' => \&compare,
-                '+' => \&add,
-                '-' => \&subtract,
-                '-=' => \&subtract_from,
-                '+=' => \&add_to,
-                '=' => \&copy;
+    'fallback' => 'undef',
+    '0+' => \&seconds,
+    '""' => \&seconds,
+    '<=>' => \&compare,
+    '+' => \&add,
+    '-' => \&subtract,
+    '-=' => \&subtract_from,
+    '+=' => \&add_to,
+    '=' => \&copy;
 
 sub new {
     my $class = shift;
