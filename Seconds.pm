@@ -225,8 +225,8 @@ The following methods are available:
     $val->hours;
     $val->days;
     $val->weeks;
-	$val->months;
-	$val->financial_months; # 30 days
+    $val->months;
+    $val->financial_months; # 30 days
     $val->years;
     $val->pretty; # gives English representation of the delta
 
