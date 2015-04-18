@@ -1,5 +1,5 @@
     - test tzoffset
     - make more tests (especially for dst)
     - clean up xs
-    - maybe use epoch values instead of calender parts in strftime
     - benchmark 1.29 against current
+    - allow cdate() to print as different formats
