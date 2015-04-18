@@ -3,6 +3,7 @@ Revision history for Time-Piece
 1.29_05   2015-04-11
         - Combine multiple 'use constant' statements (saves 0.5ms at runtime)
         - Don't leave c_epoch undef
+        - deprecate parse() function.
 
 1.29_04   2015-04-09
         - Clean inheritance of Exporter and DynaLoader (Thanks dolmen!)
