@@ -86,6 +86,10 @@ sub parse {
     my $proto = shift;
     my $class = ref($proto) || $proto;
     my @components;
+
+    warnings::warnif("deprecated", 
+        "parse() is deprecated, use strptime() instead.");
+
     if (@_ > 1) {
         @components = @_;
     }
@@ -93,7 +97,7 @@ sub parse {
         @components = shift =~ /(\d+)$DATE_SEP(\d+)$DATE_SEP(\d+)(?:(?:T|\s+)(\d+)$TIME_SEP(\d+)(?:$TIME_SEP(\d+)))/;
         @components = reverse(@components[0..5]);
     }
-    return $class->new(_strftime("%s", @components));
+    return $class->new(_strftime("%s", timelocal(@components)));
 }
 
 sub _mktime {
@@ -453,6 +457,9 @@ sub month_last_day {
     return $MON_LAST[$_mon] + ($_mon == 1 ? _is_leap_year($year) : 0);
 }
 
+#since %z and %Z are not portable lets just
+#parse it out before calling native strftime
+#(but only if we are in UTC time)
 my %GMT_REPR = (
     '%z' => '+0000',
     '%Z' => 'UTC',
