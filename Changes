@@ -22,7 +22,7 @@ Revision history for Time-Piece
         - Fix handling of %Z and %z in strftime (in progress)
         - Remove unused constants from Time::Seconds (Thanks Xaerxess!)
         - _strftime: use system mktime to better support past/future dates
-        - Relicense strptime as BSD 2-clause
+        - Relicense strptime as BSD 2-clause http://git.io/vfNSg
 
 1.29      2014-09-01
         - when pretty printing negative Time::Seconds, do not lose the "minus"
