@@ -1,5 +1,6 @@
     - test tzoffset
-    - make more tests (especially for dst)
+    - make more tests (see Devel::Cover)
     - clean up xs
     - benchmark 1.29 against current
     - allow cdate() to print as different formats
+
