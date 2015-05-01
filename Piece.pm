@@ -138,7 +138,7 @@ sub export {
 }
 
 sub import {
-    # replace CORE::GLOBAL localtime and gmtime if required
+    # replace CORE::GLOBAL localtime and gmtime if passed :override
     my $class = shift;
     my %params;
     map($params{$_}++,@_,@EXPORT);
