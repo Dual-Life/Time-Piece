@@ -244,6 +244,7 @@ my $now_parsed = $now->strptime($now_str, $strp_format);
 
 cmp_ok($now_parsed->epoch, '==', $now->epoch);
 cmp_ok($now_parsed->strftime($strp_format), 'eq', $now->strftime($strp_format));
+cmp_ok($now_parsed->strftime(), 'eq', $now->strftime());
 
 
 my $s = Time::Seconds->new(-691050);
