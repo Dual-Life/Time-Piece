@@ -14,5 +14,5 @@ t/04mjd.t
 t/05overload.t
 t/06subclass.t
 t/07arith.t
-META.yml			Module YAML meta-data (added by MakeMaker)
-META.json			Module JSON meta-data (added by MakeMaker)
+t/lib/Time/Piece/Twin.pm
+TODO
