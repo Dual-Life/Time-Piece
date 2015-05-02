@@ -1,4 +1,4 @@
-use Test::More tests => 101;
+use Test::More tests => 102;
 
 my $is_win32 = ($^O =~ /Win32/);
 my $is_qnx = ($^O eq 'qnx');
