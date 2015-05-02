@@ -1,5 +1,11 @@
 Revision history for Time-Piece
 
+1.30    2015-05-02
+        - Stable release. Overview from 1.29:
+        - Make strftime more portable + fix %z %z
+        - Add many more tests
+        - Clean inheritance
+
 1.29_05   2015-05-02
         - Combine multiple 'use constant' statements (saves 0.5ms at runtime)
         - Don't leave c_epoch undef
