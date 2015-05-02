@@ -132,7 +132,7 @@ sub export {
       no warnings 'redefine';
       *{$to . "::$method"} = $_special_exports{$method}->($class);
     } else {
-      $class->SUPER::export($to, $method);
+      $class->Exporter::export($to, $method);
     }
   }
 }
@@ -143,10 +143,10 @@ sub import {
     my %params;
     map($params{$_}++,@_,@EXPORT);
     if (delete $params{':override'}) {
-        $class->Exporter::export('CORE::GLOBAL', keys %params);
+        $class->export('CORE::GLOBAL', keys %params);
     }
     else {
-        $class->Exporter::export(scalar caller, keys %params);
+        $class->export(scalar caller, keys %params);
     }
 }
 
