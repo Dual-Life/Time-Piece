@@ -1012,7 +1012,7 @@ _strftime(fmt, epoch, islocal = 1)
     {
         char tmpbuf[128];
         struct tm mytm;
-        int len;
+        size_t len;
 
         if(islocal == 1)
             mytm = *localtime(&epoch);
