@@ -11,6 +11,8 @@ use Time::Piece;
 use Time::Seconds;
 
 #test using an epoch that can be DST
+#because sometimes funny stuff can occur [cpan #93095]
+#https://rt.cpan.org/Ticket/Display.html?id=93095#txn-1482590
 
 my $t = gmtime(1373371631); # 2013-07-09T12:07:11
 
