@@ -1,5 +1,9 @@
 Revision history for Time-Piece
 
+1.34_01     2015-06-20
+        - Begin to move most logic out of Piece.xs and into Piece.pm
+        - use strftime() to get locale day and month names
+
 1.30    2015-05-16
         - Stable release. Overview from 1.29:
         - Make strftime more portable + fix %z %z
