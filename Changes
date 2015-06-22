@@ -1,5 +1,9 @@
 Revision history for Time-Piece
 
+1.31    --
+        - Ignore some tests on non *nix platforms
+        - fix compile warnings
+
 1.30    2015-05-16
         - Stable release. Overview from 1.29:
         - Make strftime more portable + fix %z %z
