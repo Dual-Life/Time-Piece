@@ -1125,7 +1125,7 @@ _crt_localtime(time_t sec)
     PREINIT:
         struct tm mytm;
     PPCODE:
-        if(ix) mytm = *gmtime(&sec);
+        if(ix) mytm = *gmtime(&sec); /*ix set if called by alias*/
         else mytm = *localtime(&sec);
         /* Need to get: $s,$n,$h,$d,$m,$y */
 
@@ -1143,3 +1143,53 @@ _crt_localtime(time_t sec)
             } while(SP <= endsp);
         }
         return;
+
+void
+_localized_days(void)
+  PREINIT:
+    size_t len;
+    const size_t bufsize = 150;
+    char buf[bufsize];
+    size_t i;
+    struct tm mytm;
+    time_t t = 1325386800; /*1325386800 = Sun, 01 Jan 2012 03:00:00 GMT*/
+  PPCODE:
+
+    mytm = *gmtime(&t);
+    EXTEND(SP, 7);
+
+    for(i = 0; i < 7; ++i){
+        len = strftime(buf, bufsize, "%A", &mytm);
+        PUSHs(sv_2mortal(newSVpvn(buf, len)));
+        ++mytm.tm_wday;
+    }
+
+void
+_localized_months(void)
+  PREINIT:
+    size_t len;
+    const size_t bufsize = 150;
+    char buf[bufsize];
+    size_t i;
+    struct tm mytm;
+    time_t t = 1325386800; /*1325386800 = Sun, 01 Jan 2012 03:00:00 GMT*/
+  PPCODE:
+
+    mytm = *gmtime(&t);
+    EXTEND(SP, 12);
+    for(i = 0; i < 12; ++i){
+        len = strftime(buf, bufsize, "%B", &mytm);
+        PUSHs(sv_2mortal(newSVpvn(buf, len)));
+        ++mytm.tm_mon;
+    }
+
+
+
+
+
+
+
+
+
+
+
