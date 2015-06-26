@@ -3,4 +3,5 @@
     - clean up xs
     - benchmark 1.29 against current
     - allow cdate() to print as different formats
+	- Document format flags that don't work everywhere (see comments in *.t files)
 
