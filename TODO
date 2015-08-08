@@ -3,5 +3,6 @@
     - clean up xs
     - benchmark 1.29 against current
     - allow cdate() to print as different formats
-	- Document format flags that don't work everywhere (see comments in *.t files)
+    - Document format flags that don't work everywhere (see comments in *.t files)
+    - move strptime() from XS to pure perl. See DateTime::Format::Strptime for a complicated example 
 
