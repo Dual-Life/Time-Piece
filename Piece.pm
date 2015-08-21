@@ -714,7 +714,7 @@ following methods are available on the object:
 
     $t->week                # week number (ISO 8601)
 
-    $t->is_leap_year        # true if it its
+    $t->is_leap_year        # true if it's a leap year
     $t->month_last_day      # 28-31
 
     $t->time_separator($s)  # set the default separator (default ":")
