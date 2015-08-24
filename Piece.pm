@@ -2,10 +2,13 @@ package Time::Piece;
 
 use strict;
 
+require DynaLoader;
 use Time::Seconds;
 use Carp;
 use Time::Local;
 
+our @ISA = qw(DynaLoader);
+ 
 use Exporter ();
 
 our @EXPORT = qw(
@@ -19,11 +22,7 @@ our %EXPORT_TAGS = (
 
 our $VERSION = '1.31';
 
-require DynaLoader;
-{
-    local *dl_load_flags = \&DynaLoader::dl_load_flags;
-    __PACKAGE__->DynaLoader::bootstrap($VERSION);
-}
+bootstrap Time::Piece $VERSION;
 
 my $DATE_SEP = '-';
 my $TIME_SEP = ':';
