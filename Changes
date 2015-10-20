@@ -1,6 +1,9 @@
 Revision history for Time-Piece
 
-1.30_01    --
+1.31    2015-10-20
+        - No Changes since 1.30_01
+
+1.30_01 2015-09-01
         - Ignore some tests on non *nix platforms
         - fix compile warnings
         - Inherit from Dynaloader (fix static build issues)
