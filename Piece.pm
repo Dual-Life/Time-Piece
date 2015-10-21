@@ -658,7 +658,7 @@ in perlfunc will still return what you expect.
 
 The module actually implements most of an interface described by
 Larry Wall on the perl5-porters mailing list here:
-http://www.xray.mpe.mpg.de/mailing-lists/perl5-porters/2000-01/msg00241.html
+L<http://www.xray.mpe.mpg.de/mailing-lists/perl5-porters/2000-01/msg00241.html>
 
 =head1 USAGE
 
@@ -818,7 +818,7 @@ Outputs:
 For more information see "man strptime", which should be on all unix
 systems.
 
-Alternatively look here: http://www.unix.com/man-page/FreeBSD/3/strftime/
+Alternatively look here: L<http://www.unix.com/man-page/FreeBSD/3/strftime/>
 
 =head2 YYYY-MM-DDThh:mm:ss
 
@@ -886,7 +886,7 @@ as Perl.
 
 =head1 SEE ALSO
 
-The excellent Calendar FAQ at http://www.tondering.dk/claus/calendar.html
+The excellent Calendar FAQ at L<http://www.tondering.dk/claus/calendar.html>
 
 =head1 BUGS
 
