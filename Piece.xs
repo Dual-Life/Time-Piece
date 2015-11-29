@@ -384,10 +384,10 @@ struct lc_time_T {
     const char *    EF_fmt;
 };
 
-struct lc_time_T _time_localebuf;
-int _time_using_locale;
+static struct lc_time_T _time_localebuf;
+static int _time_using_locale;
 
-const struct lc_time_T	_C_time_locale = {
+static const struct lc_time_T	_C_time_locale = {
 	{
 		"Jan", "Feb", "Mar", "Apr", "May", "Jun",
 		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
@@ -966,7 +966,7 @@ label:
    !!!! You must mortalize whatever push_common_tm put on stack yourself to
         avoid leaking !!!!
 */
-SV **
+static SV **
 push_common_tm(pTHX_ SV ** SP, struct tm *mytm)
 {
 	PUSHs(newSViv(mytm->tm_sec));
@@ -988,7 +988,7 @@ push_common_tm(pTHX_ SV ** SP, struct tm *mytm)
   return   -- none, after calling return_11part_tm, you must call "return;"
               no exceptions
 */
-void
+static void
 return_11part_tm(pTHX_ SV ** SP, struct tm *mytm)
 {
        my_mini_mktime(mytm);
