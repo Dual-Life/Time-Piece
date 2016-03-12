@@ -154,7 +154,7 @@ fix_win32_tzenv(void)
         crt_tz_env = "";
     if (strcmp(perl_tz_env, crt_tz_env) != 0) {
         STRLEN perl_tz_env_len = strlen(perl_tz_env);
-        newenv = (char*)malloc((perl_tz_env_len + 4) * sizeof(char));
+        newenv = (char*)malloc(perl_tz_env_len + 4);
         if (newenv != NULL) {
 /* putenv with old MS CRTs will cause a double free internally if you delete
    an env var with the CRT env that doesn't exist in Win32 env (perl %ENV only
