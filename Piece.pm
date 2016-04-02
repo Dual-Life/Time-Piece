@@ -783,8 +783,8 @@ days, weeks and years in that delta, using the Time::Seconds API.
 In addition to adding seconds, there are two APIs for adding months and
 years:
 
-    $t->add_months(6);
-    $t->add_years(5);
+    $t = $t->add_months(6);
+    $t = $t->add_years(5);
 
 The months and years can be negative for subtractions. Note that there
 is some "strange" behaviour when adding and subtracting months at the
