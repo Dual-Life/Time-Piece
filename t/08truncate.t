@@ -2,20 +2,6 @@ use strict;
 use warnings;
 use Test::More tests => 24;
 
-# Test::Trap required to test exceptions
-my $have_test_trap;
-our $trap; # Imported
-BEGIN {
-    eval {
-        require Test::Trap;
-        Test::Trap->import (qw/trap $trap :flow
-        :stderr(systemsafe)
-        :stdout(systemsafe)
-        :warn/);
-        $have_test_trap = 1;
-    };
-}
-
 use Time::Piece;
 
 my $epoch = 1373371631;
@@ -23,17 +9,12 @@ my $t = gmtime($epoch); # 2013-07-09T12:07:11
 
 is ($t->truncate,        $t, 'No args, same object');
 is ($t->truncate('foo'), $t, 'No "to" arg, same object');
-SKIP: {
-    skip "Test::Trap not available", 2 unless $have_test_trap;
-    my @r = trap { $t->truncate('to') };
-    like ($trap->die,
-        qr/Invalid value of 'to' parameter/,
+eval { $t->truncate('to') };
+like ($@, qr/Invalid value of 'to' parameter/,
         'No "to" value croaks');
-    @r = trap { $t->truncate('to' => 'foo') };
-    like ($trap->die,
-        qr/Invalid value of 'to' parameter: foo/,
+eval { $t->truncate('to' => 'foo') };
+like ($@, qr/Invalid value of 'to' parameter: foo/,
         'Unrecognised "to" value croaks');
-}
 
 my $short = $t->truncate(to => 'second');
 my $exp   = $epoch;
