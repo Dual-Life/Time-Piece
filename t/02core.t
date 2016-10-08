@@ -1,4 +1,4 @@
-use Test::More tests => 102;
+use Test::More tests => 109;
 
 my $is_win32 = ($^O =~ /Win32/);
 my $is_qnx = ($^O eq 'qnx');
@@ -143,6 +143,7 @@ cmp_ok($t->date_separator, 'eq', '-');
 
 $t->date_separator("/");
 cmp_ok($t->date_separator, 'eq', '/');
+cmp_ok(Time::Piece::date_separator(), 'eq', '/');
 cmp_ok($t->ymd,            'eq', '2000/02/29');
 
 $t->date_separator("-");
@@ -151,6 +152,7 @@ cmp_ok($t->hms("."),       'eq', '12.34.56');
 
 $t->time_separator(".");
 cmp_ok($t->time_separator, 'eq', '.');
+cmp_ok(Time::Piece::time_separator(), 'eq', '.');
 cmp_ok($t->hms,            'eq', '12.34.56');
 
 $t->time_separator(":");
@@ -170,6 +172,9 @@ $t->day_list(@days);
 
 cmp_ok($t->day, 'eq', "Tue");
 
+my @nmdays = Time::Piece::day_list();
+is_deeply (\@nmdays, \@days);
+
 my @months = $t->mon_list();
 
 my @dumonths = qw(januari februari maart april mei juni
@@ -184,6 +189,8 @@ cmp_ok($t->month, 'eq', "februari");
 $t->mon_list(@months);
 
 cmp_ok($t->month, 'eq', "Feb");
+my @nmmonths = Time::Piece::mon_list();
+is_deeply (\@nmmonths, \@months);
 
 cmp_ok(
   $t->datetime(date => '/', T => ' ', time => '-'),
@@ -249,4 +256,9 @@ cmp_ok($now_parsed->strftime(), 'eq', $now->strftime());
 
 my $s = Time::Seconds->new(-691050);
 is($s->pretty, 'minus 7 days, 23 hours, 57 minutes, 30 seconds');
-
+$s = Time::Seconds->new(10);
+is($s->pretty, '10 seconds');
+$s = Time::Seconds->new(130);
+is($s->pretty, '2 minutes, 10 seconds');
+$s = Time::Seconds->new(7330);
+is($s->pretty, '2 hours, 2 minutes, 10 seconds');
