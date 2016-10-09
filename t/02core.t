@@ -1,4 +1,4 @@
-use Test::More tests => 102;
+use Test::More tests => 103;
 
 my $is_win32 = ($^O =~ /Win32/);
 my $is_qnx = ($^O eq 'qnx');
@@ -249,4 +249,7 @@ cmp_ok($now_parsed->strftime(), 'eq', $now->strftime());
 
 my $s = Time::Seconds->new(-691050);
 is($s->pretty, 'minus 7 days, 23 hours, 57 minutes, 30 seconds');
+
+my $s = Time::Seconds->new(-90061);
+is($s->pretty, 'minus 1 day, 1 hour, 1 minute, 1 second');
 
