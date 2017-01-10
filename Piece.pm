@@ -634,6 +634,30 @@ sub add_years {
     $time->add_months($years * 12);
 }
 
+sub truncate {
+    my ($time, %params) = @_;
+    return $time unless exists $params{to};
+    #if ($params{to} eq 'week') { return $time->_truncate_week; }
+    my %units = (
+        second   => 0,
+        minute   => 1,
+        hour     => 2,
+        day      => 3,
+        month    => 4,
+        quarter  => 5,
+        year     => 5
+    );
+    my $to = $units{$params{to}};
+    croak "Invalid value of 'to' parameter: $params{to}" unless defined $to;
+    my $start_month = 0;
+    if ($params{to} eq 'quarter') {
+        $start_month = int( $time->_mon / 3 ) * 3;
+    }
+    my @down_to = (0, 0, 0, 1, $start_month, $time->year);
+    return $time->_mktime([@down_to[0..$to-1], @$time[$to..c_isdst]],
+        $time->[c_islocal]);
+}
+
 1;
 __END__
 
@@ -793,6 +817,17 @@ starting month then the number of overlap days is added. For example
 subtracting a month from 2008-03-31 will not result in 2008-02-31 as this
 is an impossible date. Instead you will get 2008-03-02. This appears to
 be consistent with other date manipulation tools.
+
+=head2 Truncation
+
+Calling the C<truncate> method returns a copy of the object but with the
+time truncated to the start of the supplied unit.
+
+    $t = $t->truncate(to => 'day');
+
+This example will set the time to midnight on the same date which C<$t>
+had previously. Allowed values for the "to" parameter are: "year",
+"quarter", "month", "day", "hour", "minute" and "second".
 
 =head2 Date Comparisons
 
