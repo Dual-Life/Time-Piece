@@ -1,4 +1,4 @@
-use Test::More tests => 103;
+use Test::More tests => 186;
 
 my $is_win32 = ($^O =~ /Win32/);
 my $is_qnx = ($^O eq 'qnx');
@@ -143,6 +143,7 @@ cmp_ok($t->date_separator, 'eq', '-');
 
 $t->date_separator("/");
 cmp_ok($t->date_separator, 'eq', '/');
+cmp_ok(Time::Piece::date_separator(), 'eq', '/');
 cmp_ok($t->ymd,            'eq', '2000/02/29');
 
 $t->date_separator("-");
@@ -151,6 +152,7 @@ cmp_ok($t->hms("."),       'eq', '12.34.56');
 
 $t->time_separator(".");
 cmp_ok($t->time_separator, 'eq', '.');
+cmp_ok(Time::Piece::time_separator(), 'eq', '.');
 cmp_ok($t->hms,            'eq', '12.34.56');
 
 $t->time_separator(":");
@@ -170,6 +172,9 @@ $t->day_list(@days);
 
 cmp_ok($t->day, 'eq', "Tue");
 
+my @nmdays = Time::Piece::day_list();
+is_deeply (\@nmdays, \@days);
+
 my @months = $t->mon_list();
 
 my @dumonths = qw(januari februari maart april mei juni
@@ -184,6 +189,8 @@ cmp_ok($t->month, 'eq', "februari");
 $t->mon_list(@months);
 
 cmp_ok($t->month, 'eq', "Feb");
+my @nmmonths = Time::Piece::mon_list();
+is_deeply (\@nmmonths, \@months);
 
 cmp_ok(
   $t->datetime(date => '/', T => ' ', time => '-'),
@@ -233,23 +240,93 @@ cmp_ok(
   951827696
 );
 
-#from Time::Piece::Plus
 #test reverse parsing
-my $now = localtime();
-my $strp_format = "%Y-%m-%d %H:%M:%S";
+sub check_parsed {
+    my ($t, $parsed, $t_str, $strp_format) = @_;
 
-my $now_str = $now->strftime($strp_format);
+    cmp_ok($parsed->epoch, '==', $t->epoch,
+        "Epochs match for $t_str with $strp_format");
+    cmp_ok($parsed->strftime($strp_format), 'eq',
+        $t->strftime($strp_format),
+        "Outputs formatted with $strp_format match");
+    cmp_ok($parsed->strftime(), 'eq', $t->strftime(),
+        'Outputs formatted as default match');
+}
 
-my $now_parsed = $now->strptime($now_str, $strp_format);
+for my $time (
+    time(),       # Now, whenever that might be
+    1451606400,   # 2016-01-01 00:00
+    1451649600,   # 2016-01-01 12:00
+) {
+    local $ENV{LC_TIME} = 'en_US'; # Otherwise DD/MM vs MM/DD causes grief
+    my $t = gmtime($time);
+    for my $strp_format (
+        '%Y-%m-%d %H:%M:%S',
+        '%Y-%m-%d %T',
+        '%A, %e %B %Y at %I:%M:%S %p',
+        '%a, %e %b %Y at %r',
+        '%s'
+    ) {
 
-cmp_ok($now_parsed->epoch, '==', $now->epoch);
-cmp_ok($now_parsed->strftime($strp_format), 'eq', $now->strftime($strp_format));
-cmp_ok($now_parsed->strftime(), 'eq', $now->strftime());
+        my $t_str   = $t->strftime($strp_format);
+        my $parsed  = $t->strptime($t_str, $strp_format);
+
+        my $evalres = eval {
+            check_parsed ($t, $parsed, $t_str, $strp_format);
+        };
+        ok(defined $evalres, "Did not die parsing $t with '$strp_format'");
+    }
+    # Formats which cause exceptions to be thrown
+    TODO: for my $strp_format (
+        '%c',
+        '%u %U %Y %T',
+    ) {
+        local $TODO = "strptime does not correctly parse format $strp_format";
+        my $t_str   = $t->strftime($strp_format);
+        my $evalres = eval { my $parsed = $t->strptime($t_str, $strp_format); };
+        ok(defined $evalres, "Did not die parsing $t with '$strp_format'");
+    }
+    # Other bugs
+    TODO: for my $strp_format (
+        #'%s' # Only for localtime because of timezones
+        '%w %W %y %T',
+        #'%x %X', # Can error out for arbitrary times
+    ) {
+        local $TODO = "BUG: format $strp_format parses to wrong time";
+        my $t_str   = $t->strftime($strp_format);
+        my $parsed  = $t->strptime($t_str, $strp_format);
+        check_parsed ($t, $parsed, $t_str, $strp_format);
+    }
+}
+
+TODO: for my $strp_format (
+    '%x %X',
+) {
+    local $TODO  = "BUG: parse format $strp_format expects US dates MM/DD/YY";
+    local $ENV{LC_TIME} = 'en_GB'; # DD/MM/YYYY standard
+    my $time     = 1475402400; # 2016-10-02T10:00:00 day is valid month
+    my $t        = gmtime($time);
+    my $t_str    = $t->strftime($strp_format);
+    my $parsed   = $t->strptime($t_str, $strp_format);
+    check_parsed ($t, $parsed, $t_str, $strp_format);
+
+    $time        = 1476871200; # 2016-10-19T10:00:00 day is not valid month
+    $t           = gmtime($time);
+    $t_str       = $t->strftime($strp_format);
+    my $evalres  = eval { my $parsed = $t->strptime($t_str, $strp_format); };
+    ok(defined $evalres, "Did not die parsing $t with '$strp_format'");
+}
 
 
 my $s = Time::Seconds->new(-691050);
 is($s->pretty, 'minus 7 days, 23 hours, 57 minutes, 30 seconds');
 
-my $s = Time::Seconds->new(-90061);
+$s = Time::Seconds->new(-90061);
 is($s->pretty, 'minus 1 day, 1 hour, 1 minute, 1 second');
 
+$s = Time::Seconds->new(10);
+is($s->pretty, '10 seconds');
+$s = Time::Seconds->new(130);
+is($s->pretty, '2 minutes, 10 seconds');
+$s = Time::Seconds->new(7330);
+is($s->pretty, '2 hours, 2 minutes, 10 seconds');

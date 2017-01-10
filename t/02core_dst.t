@@ -1,4 +1,4 @@
-use Test::More tests => 60;
+use Test::More tests => 61;
 
 my $is_win32 = ($^O =~ /Win32/);
 my $is_qnx = ($^O eq 'qnx');
@@ -125,7 +125,7 @@ cmp_ok($t->month_last_day, '==', 31); # test more
 
 
 SKIP: {
-	skip "Extra tests for Linux, BSD only.", 6 unless $is_linux or $is_mac or $is_bsd;
+	skip "Extra tests for Linux, BSD only.", 7 unless $is_linux or $is_mac or $is_bsd;
 
     local $ENV{TZ} = "EST5EDT4";
     Time::Piece::_tzset();
@@ -138,6 +138,10 @@ SKIP: {
     cmp_ok(scalar($lt->tzoffset), 'eq', '-18000');
     cmp_ok($lt->strftime("%Y-%m-%d %H:%M:%S %Z"), 'eq', '2013-01-09 07:07:11 EST');
     like  ($lt->strftime("%z"), qr/-0500|EST/);
+    TODO: {
+        local $TODO = 'output format "%s" fails to include TZ offset';
+        is    ($lt->strftime("%s"), 1373371631, 'Epoch output is the same');
+    }
 }
 
 
