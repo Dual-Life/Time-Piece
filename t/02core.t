@@ -1,4 +1,4 @@
-use Test::More tests => 185;
+use Test::More tests => 186;
 
 my $is_win32 = ($^O =~ /Win32/);
 my $is_qnx = ($^O eq 'qnx');
@@ -320,6 +320,10 @@ TODO: for my $strp_format (
 
 my $s = Time::Seconds->new(-691050);
 is($s->pretty, 'minus 7 days, 23 hours, 57 minutes, 30 seconds');
+
+$s = Time::Seconds->new(-90061);
+is($s->pretty, 'minus 1 day, 1 hour, 1 minute, 1 second');
+
 $s = Time::Seconds->new(10);
 is($s->pretty, '10 seconds');
 $s = Time::Seconds->new(130);

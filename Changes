@@ -1,6 +1,7 @@
 Revision history for Time-Piece
 
 1.32
+        - Respect singular for 1 sec, min, etc. in pretty (choroba)
 
 1.31    2015-10-20
         - No Changes since 1.30_01
