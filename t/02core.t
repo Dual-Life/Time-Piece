@@ -247,6 +247,7 @@ for my $time (
 ) {
     local $ENV{LC_TIME} = 'en_US'; # Otherwise DD/MM vs MM/DD causes grief
     my $t = gmtime($time);
+    my $t_local = localtime($time);
     for my $strp_format (
         '%Y-%m-%d %H:%M:%S',
         '%Y-%m-%d %T',
@@ -261,7 +262,17 @@ for my $time (
         my $evalres = eval {
             check_parsed ($t, $parsed, $t_str, $strp_format);
         };
+
         ok(defined $evalres, "Did not die parsing $t with '$strp_format'");
+
+        $t_str   = $t_local->strftime($strp_format);
+        $parsed  = $t_local->strptime($t_str, $strp_format);
+
+        $evalres = eval {
+            check_parsed ($t_local, $parsed, $t_str, $strp_format);
+        };
+
+        ok(defined $evalres, "Did not die parsing $t_local with '$strp_format'");
     }
     # Formats which cause exceptions to be thrown
     TODO: for my $strp_format (
