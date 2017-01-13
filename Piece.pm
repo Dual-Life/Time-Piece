@@ -31,6 +31,7 @@ my @FULLMON_LIST = qw(January February March April May June July
                       August September October November December);
 my @DAY_LIST = qw(Sun Mon Tue Wed Thu Fri Sat);
 my @FULLDAY_LIST = qw(Sunday Monday Tuesday Wednesday Thursday Friday Saturday);
+my $IS_WIN32 = ($^O =~ /Win32/);
 
 use constant {
     'c_sec' => 0,
@@ -456,20 +457,87 @@ sub month_last_day {
     return $MON_LAST[$_mon] + ($_mon == 1 ? _is_leap_year($year) : 0);
 }
 
-#since %z and %Z are not portable lets just
-#parse it out before calling native strftime
-#(but only if we are in UTC time)
-my %GMT_REPR = (
-    '%z' => '+0000',
-    '%Z' => 'UTC',
-);
+my $strftime_trans_map = {
+	'c' => sub {
+		my ( $time, $format ) = @_;
+		$format =~ s/%c/%a %d %b %Y %I:%M:%S %p/;
+		return $format;
+	},
+	'e' => sub {
+		my ( $time, $format ) = @_;
+		$format =~ s/%e/%d/ if $IS_WIN32;
+		return $format;
+	},
+	'D' => sub {
+		my ( $time, $format ) = @_;
+		$format =~ s/%D/%m\/%d\/%y/;
+		return $format;
+	},
+	'F' => sub {
+		my ( $time, $format ) = @_;
+		$format =~ s/%F/%Y-%m-%d/;
+		return $format;
+	},
+	'r' => sub {
+		my ( $time, $format ) = @_;
+		$format =~ s/%r/%I:%M:%S %p/ if $IS_WIN32;
+		return $format;
+	},
+	'R' => sub {
+		my ( $time, $format ) = @_;
+		$format =~ s/%R/%H:%M/;
+		return $format;
+	},
+    's' => sub {
+        #%s not portable if time parts are from gmtime since %s will
+        #cause a call to native mktime (and thus uses local TZ)
+		my ( $time, $format ) = @_;
+        $format =~ s/%s/$time->[c_epoch]/;
+        return $format;
+    },
+	'T' => sub {
+		my ( $time, $format ) = @_;
+		$format =~ s/%T/%H:%M:%S/ if $IS_WIN32;
+		return $format;
+	},
+	'u' => sub {
+		my ( $time, $format ) = @_;
+		$format =~ s/%u/%w/ if $IS_WIN32;
+		return $format;
+	},
+	'V' => sub {
+		my ( $time, $format ) = @_;
+		$format =~ s/%V/%U/ if $IS_WIN32;
+		return $format;
+	},
+	'x' => sub {
+		my ( $time, $format ) = @_;
+		$format =~ s/%x/%a %d %b %Y/;
+		return $format;
+	},
+	'X' => sub {
+		my ( $time, $format ) = @_;
+		$format =~ s/%X/%I:%M:%S %p/;
+		return $format;
+	},
+    'z' => sub { #%[zZ] not portable if time parts are from gmtime
+		my ( $time, $format ) = @_;
+        $format =~ s/%z/+0000/ if not $time->[c_islocal];
+        return $format;
+    },
+    'Z' => sub {
+		my ( $time, $format ) = @_;
+        $format =~ s/%Z/UTC/ if not $time->[c_islocal];
+        return $format;
+    },
+};
 
 sub strftime {
     my $time = shift;
     my $format = @_ ? shift(@_) : '%a, %d %b %Y %H:%M:%S %Z';
-    if (! $time->[c_islocal]) {
-        $format =~ s/(%.)/$GMT_REPR{$1} || $1/eg;
-    }
+    $format = $time->_translate_format($format, $strftime_trans_map);
+
+    return $format unless $format =~ /%/; #if translate removes everything
 
     return _strftime($format, $time->epoch, $time->[c_islocal]);
 }
@@ -657,6 +725,38 @@ sub truncate {
     return $time->_mktime([@down_to[0..$to-1], @$time[$to..c_isdst]],
         $time->[c_islocal]);
 }
+
+#Given a format and a translate map, replace format flags in
+#accordance with the logic from the translation map subroutines
+sub _translate_format {
+    my ( $time, $format, $trans_map ) = @_;
+
+    $format =~ s/%%/\e\e/g; #escape the escape
+    my $lexer = _build_format_lexer($format);
+
+	while(my $flag = $lexer->() ){
+        next unless exists $trans_map->{$flag};
+		$format = $trans_map->{$flag}($time, $format);
+	}
+
+    $format =~ s/\e\e/%%/g;
+    return $format;
+}
+
+sub _build_format_lexer {
+    my $format = shift();
+
+    #Higher Order Perl p.359 (or thereabouts)
+    return sub {
+        LABEL: {
+        return $1 if $format =~ m/\G%([a-zA-Z])/gc; #return single char flags
+
+        redo LABEL if $format =~ m/\G(.)/gc;
+        return; #return at empty string
+        }
+    };
+}
+
 
 1;
 __END__
