@@ -1,4 +1,4 @@
-use Test::More tests => 186;
+use Test::More tests => 273;
 
 my $is_win32 = ($^O =~ /Win32/);
 my $is_qnx = ($^O eq 'qnx');
@@ -253,7 +253,8 @@ for my $time (
         '%Y-%m-%d %T',
         '%A, %e %B %Y at %I:%M:%S %p',
         '%a, %e %b %Y at %r',
-        '%s'
+        '%s',
+        '%c',
     ) {
 
         my $t_str   = $t->strftime($strp_format);
@@ -274,21 +275,10 @@ for my $time (
 
         ok(defined $evalres, "Did not die parsing $t_local with '$strp_format'");
     }
-    # Formats which cause exceptions to be thrown
+
     TODO: for my $strp_format (
-        '%c',
-        '%u %U %Y %T',
-    ) {
-        local $TODO = "strptime does not correctly parse format $strp_format";
-        my $t_str   = $t->strftime($strp_format);
-        my $evalres = eval { my $parsed = $t->strptime($t_str, $strp_format); };
-        ok(defined $evalres, "Did not die parsing $t with '$strp_format'");
-    }
-    # Other bugs
-    TODO: for my $strp_format (
-        #'%s' # Only for localtime because of timezones
+        '%u %U %Y %T', #%U,W,V currently skipped inside strptime
         '%w %W %y %T',
-        #'%x %X', # Can error out for arbitrary times
     ) {
         local $TODO = "BUG: format $strp_format parses to wrong time";
         my $t_str   = $t->strftime($strp_format);
@@ -297,10 +287,10 @@ for my $time (
     }
 }
 
-TODO: for my $strp_format (
-    '%x %X',
+
+for my $strp_format (
+    '%x %X', #hard coded to American localization
 ) {
-    local $TODO  = "BUG: parse format $strp_format expects US dates MM/DD/YY";
     local $ENV{LC_TIME} = 'en_GB'; # DD/MM/YYYY standard
     my $time     = 1475402400; # 2016-10-02T10:00:00 day is valid month
     my $t        = gmtime($time);
