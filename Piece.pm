@@ -507,7 +507,8 @@ my $strftime_trans_map = {
 	},
 	'V' => sub {
 		my ( $time, $format ) = @_;
-		$format =~ s/%V/%U/ if $IS_WIN32;
+		my $week = sprintf("%02d",$time->week());
+		$format =~ s/%V/$week/ if $IS_WIN32;
 		return $format;
 	},
 	'x' => sub {
