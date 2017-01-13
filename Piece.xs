@@ -758,6 +758,7 @@ label:
 
 			tm->tm_wday = i;
 
+			buf++;
 			if (*buf != 0 && isspace((unsigned char)*buf))
 				while (*ptr != 0 && !isspace((unsigned char)*ptr))
 					ptr++;
