@@ -866,8 +866,12 @@ label:
 			errno = sverrno;
 			buf = cp;
             memset(&mytm, 0, sizeof(mytm));
-            my_init_tm(&mytm);    /* XXX workaround - see my_init_tm() above */
-            mytm = *gmtime(&t);
+
+            if(*got_GMT == 1)
+                mytm = *localtime(&t);
+            else
+                mytm = *gmtime(&t);
+
             tm->tm_sec    = mytm.tm_sec;
             tm->tm_min    = mytm.tm_min;
             tm->tm_hour   = mytm.tm_hour;
@@ -1098,9 +1102,10 @@ _tzset()
     return; /* skip XSUBPP's PUTBACK */
 
 void
-_strptime ( string, format )
+_strptime ( string, format, got_GMT )
 	char * string
 	char * format
+	int    got_GMT
   PREINIT:
        struct tm mytm;
        time_t t;
