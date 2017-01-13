@@ -1,9 +1,10 @@
 Revision history for Time-Piece
 
-1.32
+1.31_01 2016-01-13
         - Respect singular for 1 sec, min, etc. in pretty (choroba)
         - Add truncate() (openstrike)
         - Add many more tests (openstrike)
+        - Add more compatibility to strf/strptime
 
 1.31    2015-10-20
         - No Changes since 1.30_01
