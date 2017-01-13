@@ -10,30 +10,6 @@ extern "C" {
 }
 #endif
 
-/* XXX struct tm on some systems (SunOS4/BSD) contains extra (non POSIX)
- * fields for which we don't have Configure support prior to Perl 5.8.0:
- *   char *tm_zone;   -- abbreviation of timezone name
- *   long tm_gmtoff;  -- offset from GMT in seconds
- * To workaround core dumps from the uninitialised tm_zone we get the
- * system to give us a reasonable struct to copy.  This fix means that
- * strftime uses the tm_zone and tm_gmtoff values returned by
- * localtime(time()). That should give the desired result most of the
- * time. But probably not always!
- *
- * This is a vestigial workaround for Perls prior to 5.8.0.  We now
- * rely on the initialization (still likely a workaround) in util.c.
- */
-#if !defined(PERL_VERSION) || PERL_VERSION < 8
-
-#if defined(HAS_GNULIBC)
-# ifndef STRUCT_TM_HASZONE
-#    define STRUCT_TM_HASZONE
-# else
-#    define USE_TM_GMTOFF
-# endif
-#endif
-
-#endif /* end of pre-5.8 */
 
 #define    DAYS_PER_YEAR    365
 #define    DAYS_PER_QYEAR    (4*DAYS_PER_YEAR+1)
@@ -48,26 +24,6 @@ extern "C" {
 #define    YEAR_ADJUST    (4*MONTH_TO_DAYS+1)
 /* as used here, the algorithm leaves Sunday as day 1 unless we adjust it */
 #define    WEEKDAY_BIAS    6    /* (1+6)%7 makes Sunday 0 again */
-
-#if !defined(PERL_VERSION) || PERL_VERSION < 8
-
-#ifdef STRUCT_TM_HASZONE
-static void
-my_init_tm(struct tm *ptm)        /* see mktime, strftime and asctime    */
-{
-    Time_t now;
-    (void)time(&now);
-    Copy(localtime(&now), ptm, 1, struct tm);
-}
-
-#else
-# define my_init_tm(ptm)
-#endif
-
-#else
-/* use core version from util.c in 5.8.0 and later */
-# define my_init_tm init_tm
-#endif
 
 #ifdef WIN32
 
