@@ -5,4 +5,4 @@
     - Document format flags that don't work everywhere (see comments in *.t files)
     - move strptime() from XS to pure perl. See DateTime::Format::Strptime for a complicated example 
         Possible logic: parse date into tm struct, get epoch and then convert back to tm struct get a properly normalized form
-
+    - Every "return 0" in the strptime case statement in Piece.xs needs to be preceded by a useful error statement
