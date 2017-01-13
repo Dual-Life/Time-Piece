@@ -546,9 +546,10 @@ sub strptime {
     my $time = shift;
     my $string = shift;
     my $format = @_ ? shift(@_) : "%a, %d %b %Y %H:%M:%S %Z";
-    my @vals = _strptime($string, $format);
-#    warn(sprintf("got vals: %d-%d-%d %d:%d:%d\n", reverse(@vals)));
-    return scalar $time->_mktime(\@vals, (ref($time) ? $time->[c_islocal] : 0));
+    my $islocal = (ref($time) ? $time->[c_islocal] : 0);
+    my @vals = _strptime($string, $format, $islocal);
+#   warn(sprintf("got vals: %d-%d-%d %d:%d:%d\n", reverse(@vals)));
+    return scalar $time->_mktime(\@vals, $islocal);
 }
 
 sub day_list {
