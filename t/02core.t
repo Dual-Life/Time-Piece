@@ -76,15 +76,8 @@ cmp_ok($t->week, '==', 9);
 # 20 or 19, is fun, too..as far as I can read SUSv2 it should be 20.)
 cmp_ok($t->strftime('%d'), '==', 29);
 
-SKIP: {
-  skip "can't strftime %D, %R, %T or %e on Win32", 1 if $is_win32;
-  cmp_ok($t->strftime('%D'), 'eq', '02/29/00'); # Yech!
-}
-SKIP:{
-  skip "can't strftime %D, %R, %T or %e on Win32", 1 if $is_win32;
-  skip "can't strftime %e on QNX", 1 if $is_qnx;
-  cmp_ok($t->strftime('%e'), 'eq', '29');       # should test with < 10
-}
+cmp_ok($t->strftime('%D'), 'eq', '02/29/00'); # Yech!
+cmp_ok($t->strftime('%e'), 'eq', '29');       # should test with < 10
 
 # %h is locale-dependent
 cmp_ok($t->strftime('%H'), 'eq', '12'); # should test with < 10
@@ -96,17 +89,11 @@ cmp_ok($t->strftime('%M'), 'eq', '34'); # should test with < 10
 # %p, %P, and %r are not widely implemented,
 # and are possibly unportable (am or AM or a.m., and so on)
 
-SKIP: {
-  skip "can't strftime %R on Win32 or QNX", 1 if $is_win32 or $is_qnx;
-  cmp_ok($t->strftime('%R'), 'eq', '12:34');    # should test with > 12
-}
+cmp_ok($t->strftime('%R'), 'eq', '12:34');    # should test with > 12
 
 ok($t->strftime('%S') eq '56'); # should test with < 10
 
-SKIP: {
-  skip "can't strftime %T on Win32", 1 if $is_win32;
-  cmp_ok($t->strftime('%T'), 'eq', '12:34:56'); # < 12 and > 12
-}
+cmp_ok($t->strftime('%T'), 'eq', '12:34:56'); # < 12 and > 12
 
 # There are bugs in the implementation of %u in many platforms.
 # (e.g. Linux seems to think, despite the man page, that %u
@@ -115,7 +102,7 @@ SKIP: {
 cmp_ok($t->strftime('%U'), 'eq', '09'); # Sun cmp Mon
 
 SKIP: {
-    skip "can't strftime %V on Win32 or QNX or VOS", 1 if $is_win32 or $is_qnx or $is_vos;
+    skip "can't strftime %V on QNX or VOS", 1 if $is_qnx or $is_vos;
     # is this test really broken on Mac OS? -- rjbs, 2006-02-08
     cmp_ok($t->strftime('%V'), 'eq', '09'); # Sun cmp Mon
 }
