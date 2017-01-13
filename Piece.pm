@@ -458,76 +458,76 @@ sub month_last_day {
 }
 
 my $strftime_trans_map = {
-	'c' => sub {
-		my ( $time, $format ) = @_;
-		$format =~ s/%c/%a %d %b %Y %I:%M:%S %p/;
-		return $format;
-	},
-	'e' => sub {
-		my ( $time, $format ) = @_;
-		$format =~ s/%e/%d/ if $IS_WIN32;
-		return $format;
-	},
-	'D' => sub {
-		my ( $time, $format ) = @_;
-		$format =~ s/%D/%m\/%d\/%y/;
-		return $format;
-	},
-	'F' => sub {
-		my ( $time, $format ) = @_;
-		$format =~ s/%F/%Y-%m-%d/;
-		return $format;
-	},
-	'r' => sub {
-		my ( $time, $format ) = @_;
-		$format =~ s/%r/%I:%M:%S %p/ if $IS_WIN32;
-		return $format;
-	},
-	'R' => sub {
-		my ( $time, $format ) = @_;
-		$format =~ s/%R/%H:%M/;
-		return $format;
-	},
+    'c' => sub {
+        my ( $time, $format ) = @_;
+        $format =~ s/%c/%a %d %b %Y %I:%M:%S %p/;
+        return $format;
+    },
+    'e' => sub {
+        my ( $time, $format ) = @_;
+        $format =~ s/%e/%d/ if $IS_WIN32;
+        return $format;
+    },
+    'D' => sub {
+        my ( $time, $format ) = @_;
+        $format =~ s/%D/%m\/%d\/%y/;
+        return $format;
+    },
+    'F' => sub {
+        my ( $time, $format ) = @_;
+        $format =~ s/%F/%Y-%m-%d/;
+        return $format;
+    },
+    'r' => sub {
+        my ( $time, $format ) = @_;
+        $format =~ s/%r/%I:%M:%S %p/ if $IS_WIN32;
+        return $format;
+    },
+    'R' => sub {
+        my ( $time, $format ) = @_;
+        $format =~ s/%R/%H:%M/;
+        return $format;
+    },
     's' => sub {
         #%s not portable if time parts are from gmtime since %s will
         #cause a call to native mktime (and thus uses local TZ)
-		my ( $time, $format ) = @_;
+        my ( $time, $format ) = @_;
         $format =~ s/%s/$time->[c_epoch]/;
         return $format;
     },
-	'T' => sub {
-		my ( $time, $format ) = @_;
-		$format =~ s/%T/%H:%M:%S/ if $IS_WIN32;
-		return $format;
-	},
-	'u' => sub {
-		my ( $time, $format ) = @_;
-		$format =~ s/%u/%w/ if $IS_WIN32;
-		return $format;
-	},
-	'V' => sub {
-		my ( $time, $format ) = @_;
-		my $week = sprintf("%02d",$time->week());
-		$format =~ s/%V/$week/ if $IS_WIN32;
-		return $format;
-	},
-	'x' => sub {
-		my ( $time, $format ) = @_;
-		$format =~ s/%x/%a %d %b %Y/;
-		return $format;
-	},
-	'X' => sub {
-		my ( $time, $format ) = @_;
-		$format =~ s/%X/%I:%M:%S %p/;
-		return $format;
-	},
-    'z' => sub { #%[zZ] not portable if time parts are from gmtime
-		my ( $time, $format ) = @_;
+    'T' => sub {
+        my ( $time, $format ) = @_;
+        $format =~ s/%T/%H:%M:%S/ if $IS_WIN32;
+        return $format;
+    },
+    'u' => sub {
+        my ( $time, $format ) = @_;
+        $format =~ s/%u/%w/ if $IS_WIN32;
+        return $format;
+    },
+    'V' => sub {
+        my ( $time, $format ) = @_;
+        my $week = sprintf( "%02d", $time->week() );
+        $format =~ s/%V/$week/ if $IS_WIN32;
+        return $format;
+    },
+    'x' => sub {
+        my ( $time, $format ) = @_;
+        $format =~ s/%x/%a %d %b %Y/;
+        return $format;
+    },
+    'X' => sub {
+        my ( $time, $format ) = @_;
+        $format =~ s/%X/%I:%M:%S %p/;
+        return $format;
+    },
+    'z' => sub {    #%[zZ] not portable if time parts are from gmtime
+        my ( $time, $format ) = @_;
         $format =~ s/%z/+0000/ if not $time->[c_islocal];
         return $format;
     },
     'Z' => sub {
-		my ( $time, $format ) = @_;
+        my ( $time, $format ) = @_;
         $format =~ s/%Z/UTC/ if not $time->[c_islocal];
         return $format;
     },
