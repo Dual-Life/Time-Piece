@@ -512,7 +512,7 @@ label:
 
 		case 'c':
 			/* NOTE: c_fmt is intentionally ignored */
-                        buf = _strptime(aTHX_ buf, "%a %Ef %T %Y", tm, got_GMT);
+                        buf = _strptime(aTHX_ buf, "%a %d %b %Y %I:%M:%S %p %Z", tm, got_GMT);
 			if (buf == 0)
 				return 0;
 			break;
@@ -536,6 +536,11 @@ label:
 			goto label;
 
 		case 'F':
+			buf = _strptime(aTHX_ buf, "%Y-%m-%d", tm, got_GMT);
+			if (buf == 0)
+				return 0;
+			break;
+
 		case 'f':
 			if (!Ealternative)
 				break;
@@ -571,13 +576,13 @@ label:
 			break;
 
 		case 'X':
-			buf = _strptime(aTHX_ buf, Locale->X_fmt, tm, got_GMT);
+			buf = _strptime(aTHX_ buf, "%I:%M:%S %p", tm, got_GMT);
 			if (buf == 0)
 				return 0;
 			break;
 
 		case 'x':
-			buf = _strptime(aTHX_ buf, Locale->x_fmt, tm, got_GMT);
+			buf = _strptime(aTHX_ buf, "%a %d %b %Y", tm, got_GMT);
 			if (buf == 0)
 				return 0;
 			break;
@@ -715,6 +720,7 @@ label:
 			break;
 
 		case 'U':
+		case 'V':
 		case 'W':
 			/*
 			 * XXX This is bogus, as we can not assume any valid
@@ -739,13 +745,16 @@ label:
 					ptr++;
 			break;
 
+		case 'u':
 		case 'w':
 			if (!isdigit((unsigned char)*buf))
 				return 0;
 
 			i = *buf - '0';
-			if (i > 6)
+			if (i > 6 + (c == 'u'))
 				return 0;
+			if (i == 7)
+				i = 0;
 
 			tm->tm_wday = i;
 
