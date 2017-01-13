@@ -1108,14 +1108,10 @@ _strptime ( string, format, got_GMT )
 	int    got_GMT
   PREINIT:
        struct tm mytm;
-       time_t t;
        char * remainder;
-       int got_GMT;
   PPCODE:
-       t = 0;
-       mytm = *gmtime(&t);
+       memset(&mytm, 0, sizeof(mytm));
        mytm.tm_isdst = -1; /* -1 means we don't know */
-       got_GMT = 0;
 
        remainder = (char *)_strptime(aTHX_ string, format, &mytm, &got_GMT);
        if (remainder == NULL) {
