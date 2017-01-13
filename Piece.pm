@@ -548,7 +548,7 @@ sub strptime {
     my $format = @_ ? shift(@_) : "%a, %d %b %Y %H:%M:%S %Z";
     my $islocal = (ref($time) ? $time->[c_islocal] : 0);
     my @vals = _strptime($string, $format, $islocal);
-#   warn(sprintf("got vals: %d-%d-%d %d:%d:%d\n", reverse(@vals)));
+#    warn(sprintf("got vals: %d-%d-%d %d:%d:%d\n", reverse(@vals[c_sec..c_year])));
     return scalar $time->_mktime(\@vals, $islocal);
 }
 

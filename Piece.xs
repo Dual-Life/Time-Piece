@@ -963,7 +963,7 @@ return_11part_tm(pTHX_ SV ** SP, struct tm *mytm)
 {
        my_mini_mktime(mytm);
 
-  /* warn("tm: %d-%d-%d %d:%d:%d\n", mytm.tm_year, mytm.tm_mon, mytm.tm_mday, mytm.tm_hour, mytm.tm_min, mytm.tm_sec); */
+  /* warn("tm: %d-%d-%d %d:%d:%d\n", mytm->tm_year, mytm->tm_mon, mytm->tm_mday, mytm->tm_hour, mytm->tm_min, mytm->tm_sec); */
        EXTEND(SP, 11);
        SP = push_common_tm(aTHX_ SP, mytm);
        /* epoch */
