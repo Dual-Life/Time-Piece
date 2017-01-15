@@ -26,11 +26,10 @@ bootstrap Time::Piece $VERSION;
 
 my $DATE_SEP = '-';
 my $TIME_SEP = ':';
-my @MON_LIST = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
-my @FULLMON_LIST = qw(January February March April May June July
-                      August September October November December);
-my @DAY_LIST = qw(Sun Mon Tue Wed Thu Fri Sat);
-my @FULLDAY_LIST = qw(Sunday Monday Tuesday Wednesday Thursday Friday Saturday);
+our @MON_LIST;
+our @FULLMON_LIST;
+our @DAY_LIST;
+our @FULLDAY_LIST;
 my $IS_WIN32 = ($^O =~ /Win32/);
 
 our $locale;
@@ -48,6 +47,8 @@ use constant {
     'c_epoch' => 9,
     'c_islocal' => 10,
 };
+
+INIT { _populate_locale(); }
 
 sub localtime {
     unshift @_, __PACKAGE__ unless eval { $_[0]->isa('Time::Piece') };
@@ -105,7 +106,6 @@ sub parse {
 sub _mktime {
     my ($class, $time, $islocal) = @_;
 
-    _populate_locale() unless $Time::Piece::locale;
     $class = eval { (ref $class) && (ref $class)->isa('Time::Piece') }
            ? ref $class
            : $class;
@@ -773,6 +773,10 @@ sub _populate_locale {
     #region specific format for %c someday
     $locales->{c_fmt} = '';
 
+    @Time::Piece::FULLDAY_LIST = @{$locales->{weekday}};
+    @Time::Piece::DAY_LIST = @{$locales->{wday}};
+    @Time::Piece::FULLMON_LIST= @{$locales->{month}};
+    @Time::Piece::MON_LIST= @{$locales->{mon}};
 
     $Time::Piece::locale = $locales;
 }
