@@ -444,7 +444,7 @@ label:
 			break;
 
 		case '+':
-			buf = _strptime(aTHX_ buf, Locale->date_fmt, tm, got_GMT);
+			buf = _strptime(aTHX_ buf, "%c", tm, got_GMT);
 			if (buf == 0)
 				return 0;
 			break;
@@ -468,7 +468,8 @@ label:
 
 		case 'c':
 			/* NOTE: c_fmt is intentionally ignored */
-                        buf = _strptime(aTHX_ buf, "%a %d %b %Y %I:%M:%S %p %Z", tm, got_GMT);
+
+			buf = _strptime(aTHX_ buf, "%a %d %b %Y %I:%M:%S %p %Z", tm, got_GMT);
 			if (buf == 0)
 				return 0;
 			break;
@@ -493,14 +494,6 @@ label:
 
 		case 'F':
 			buf = _strptime(aTHX_ buf, "%Y-%m-%d", tm, got_GMT);
-			if (buf == 0)
-				return 0;
-			break;
-
-		case 'f':
-			if (!Ealternative)
-				break;
-			buf = _strptime(aTHX_ buf, (c == 'f') ? Locale->Ef_fmt : Locale->EF_fmt, tm, got_GMT);
 			if (buf == 0)
 				return 0;
 			break;
@@ -1126,7 +1119,7 @@ _crt_localtime(time_t sec)
         return;
 
 SV*
-_get_localization(void)
+_get_localization()
     INIT:
         HV* locals = newHV();
         AV* wdays = newAV();
