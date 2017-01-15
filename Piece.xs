@@ -1121,7 +1121,7 @@ _crt_localtime(time_t sec)
 SV*
 _get_localization()
     INIT:
-        HV* locals = newHV();
+        HV* locales = newHV();
         AV* wdays = newAV();
         AV* weekdays = newAV();
         AV* mons = newAV();
@@ -1157,18 +1157,18 @@ _get_localization()
             ++mytm.tm_mon;
         }
 
-        tmp = hv_store(locals, "wday", strlen("wday"), newRV((SV *) wdays), 0);
-        tmp = hv_store(locals, "weekday", strlen("weekday"), newRV((SV *) weekdays), 0);
-        tmp = hv_store(locals, "mon", strlen("mon"), newRV((SV *) mons), 0);
-        tmp = hv_store(locals, "month", strlen("month"), newRV((SV *) months), 0);
-        tmp = hv_store(locals, "alt_month", strlen("alt_month"), newRV((SV *) months), 0);
+        tmp = hv_store(locales, "wday", strlen("wday"), newRV((SV *) wdays), 0);
+        tmp = hv_store(locales, "weekday", strlen("weekday"), newRV((SV *) weekdays), 0);
+        tmp = hv_store(locales, "mon", strlen("mon"), newRV((SV *) mons), 0);
+        tmp = hv_store(locales, "month", strlen("month"), newRV((SV *) months), 0);
+        tmp = hv_store(locales, "alt_month", strlen("alt_month"), newRV((SV *) months), 0);
 
         len = strftime(buf, bufsize, "%p", &mytm);
-        tmp = hv_store(locals, "AM", strlen("AM"), newSVpvn(buf,len), 0);
+        tmp = hv_store(locales, "AM", strlen("AM"), newSVpvn(buf,len), 0);
         mytm.tm_hour = 18;
         len = strftime(buf, bufsize, "%p", &mytm);
-        tmp = hv_store(locals, "PM", strlen("PM"), newSVpvn(buf,len), 0);
+        tmp = hv_store(locales, "PM", strlen("PM"), newSVpvn(buf,len), 0);
 
-        RETVAL = newRV_noinc((SV *)locals);
+        RETVAL = newRV_noinc((SV *)locales);
     OUTPUT:
         RETVAL
