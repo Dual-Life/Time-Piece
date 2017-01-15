@@ -1169,6 +1169,6 @@ _get_localization()
         len = strftime(buf, bufsize, "%p", &mytm);
         tmp = hv_store(locals, "PM", strlen("PM"), newSVpvn(buf,len), 0);
 
-        RETVAL = newRV((SV *)locals);
+        RETVAL = newRV_noinc((SV *)locals);
     OUTPUT:
         RETVAL
