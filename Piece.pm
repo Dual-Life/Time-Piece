@@ -33,6 +33,8 @@ my @DAY_LIST = qw(Sun Mon Tue Wed Thu Fri Sat);
 my @FULLDAY_LIST = qw(Sunday Monday Tuesday Wednesday Thursday Friday Saturday);
 my $IS_WIN32 = ($^O =~ /Win32/);
 
+our $locale;
+
 use constant {
     'c_sec' => 0,
     'c_min' => 1,
@@ -102,6 +104,8 @@ sub parse {
 
 sub _mktime {
     my ($class, $time, $islocal) = @_;
+
+    _populate_locale() unless $Time::Piece::locale;
     $class = eval { (ref $class) && (ref $class)->isa('Time::Piece') }
            ? ref $class
            : $class;
@@ -757,6 +761,20 @@ sub _build_format_lexer {
         return; #return at empty string
         }
     };
+}
+
+sub _populate_locale {
+    #get locale month/day names from posix strftime (from Piece.xs)
+    my $locales = _get_localization();
+
+    $locales->{pm} = lc $locales->{PM};
+    $locales->{am} = lc $locales->{AM};
+    #should probably figure out how to get a
+    #region specific format for %c someday
+    $locales->{c_fmt} = '';
+
+
+    $Time::Piece::locale = $locales;
 }
 
 
