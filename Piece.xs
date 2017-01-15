@@ -1124,3 +1124,58 @@ _crt_localtime(time_t sec)
             } while(SP <= endsp);
         }
         return;
+
+SV*
+_get_localization(void)
+    INIT:
+        HV* locals = newHV();
+        AV* wdays = newAV();
+        AV* weekdays = newAV();
+        AV* mons = newAV();
+        AV* months = newAV();
+        SV** tmp;
+        size_t len;
+        const size_t bufsize = 150;
+        char buf[bufsize];
+        size_t i;
+        time_t t = 1325386800; /*1325386800 = Sun, 01 Jan 2012 03:00:00 GMT*/
+        struct tm mytm = *gmtime(&t);
+     CODE:
+
+        for(i = 0; i < 7; ++i){
+
+            len = strftime(buf, bufsize, "%a", &mytm);
+            av_push(wdays, (SV *) newSVpvn(buf, len));
+
+            len = strftime(buf, bufsize, "%A", &mytm);
+            av_push(weekdays, (SV *) newSVpvn(buf, len));
+
+            ++mytm.tm_wday;
+        }
+
+        for(i = 0; i < 12; ++i){
+
+            len = strftime(buf, bufsize, "%b", &mytm);
+            av_push(mons, (SV *) newSVpvn(buf, len));
+
+            len = strftime(buf, bufsize, "%B", &mytm);
+            av_push(months, (SV *) newSVpvn(buf, len));
+
+            ++mytm.tm_mon;
+        }
+
+        tmp = hv_store(locals, "wday", strlen("wday"), newRV((SV *) wdays), 0);
+        tmp = hv_store(locals, "weekday", strlen("weekday"), newRV((SV *) weekdays), 0);
+        tmp = hv_store(locals, "mon", strlen("mon"), newRV((SV *) mons), 0);
+        tmp = hv_store(locals, "month", strlen("month"), newRV((SV *) months), 0);
+        tmp = hv_store(locals, "alt_month", strlen("alt_month"), newRV((SV *) months), 0);
+
+        len = strftime(buf, bufsize, "%p", &mytm);
+        tmp = hv_store(locals, "AM", strlen("AM"), newSVpvn(buf,len), 0);
+        mytm.tm_hour = 18;
+        len = strftime(buf, bufsize, "%p", &mytm);
+        tmp = hv_store(locals, "PM", strlen("PM"), newSVpvn(buf,len), 0);
+
+        RETVAL = newRV((SV *)locals);
+    OUTPUT:
+        RETVAL
