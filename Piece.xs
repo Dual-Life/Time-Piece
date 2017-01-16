@@ -1049,7 +1049,8 @@ _strptime ( string, format, got_GMT, SV* localization )
            croak("Error parsing time");
        }
        if (*remainder != '\0') {
-           warn("garbage at end of string in strptime: %s", remainder);
+           warn("Garbage at end of string in strptime: %s", remainder);
+           warn("Perhaps a format flag did not match the actual input?");
        }
 
        return_11part_tm(aTHX_ SP, &mytm);
