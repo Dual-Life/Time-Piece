@@ -462,77 +462,98 @@ sub month_last_day {
     return $MON_LAST[$_mon] + ($_mon == 1 ? _is_leap_year($year) : 0);
 }
 
-my $strftime_trans_map = {
+my $trans_map_common = {
+
     'c' => sub {
-        my ( $time, $format ) = @_;
-        $format =~ s/%c/%a %d %b %Y %I:%M:%S %p/;
+        my ( $format ) = @_;
+        if($locale->{PM} && $locale->{AM}){
+            $format =~ s/%c/%a %d %b %Y %I:%M:%S %p/;
+        }
+        else{
+            $format =~ s/%c/%a %d %b %Y %H:%M:%S/;
+        }
         return $format;
     },
+    'r' => sub {
+        my ( $format ) = @_;
+        if($locale->{PM} && $locale->{AM}){
+            $format =~ s/%r/%I:%M:%S %p/;
+        }
+        else{
+            $format =~ s/%r/%H:%M:%S/;
+        }
+        return $format;
+    },
+    'X' => sub {
+        my ( $format ) = @_;
+        if($locale->{PM} && $locale->{AM}){
+            $format =~ s/%X/%I:%M:%S %p/;
+        }
+        else{
+            $format =~ s/%X/%H:%M:%S/;
+        }
+        return $format;
+    },
+};
+
+my $strftime_trans_map = {
+    %{$trans_map_common},
+
     'e' => sub {
-        my ( $time, $format ) = @_;
+        my ( $format, $time ) = @_;
         $format =~ s/%e/%d/ if $IS_WIN32;
         return $format;
     },
     'D' => sub {
-        my ( $time, $format ) = @_;
+        my ( $format, $time ) = @_;
         $format =~ s/%D/%m\/%d\/%y/;
         return $format;
     },
     'F' => sub {
-        my ( $time, $format ) = @_;
+        my ( $format, $time ) = @_;
         $format =~ s/%F/%Y-%m-%d/;
         return $format;
     },
-    'r' => sub {
-        my ( $time, $format ) = @_;
-        $format =~ s/%r/%I:%M:%S %p/ if $IS_WIN32;
-        return $format;
-    },
     'R' => sub {
-        my ( $time, $format ) = @_;
+        my ( $format, $time ) = @_;
         $format =~ s/%R/%H:%M/;
         return $format;
     },
     's' => sub {
         #%s not portable if time parts are from gmtime since %s will
         #cause a call to native mktime (and thus uses local TZ)
-        my ( $time, $format ) = @_;
+        my ( $format, $time ) = @_;
         $format =~ s/%s/$time->[c_epoch]/;
         return $format;
     },
     'T' => sub {
-        my ( $time, $format ) = @_;
+        my ( $format, $time ) = @_;
         $format =~ s/%T/%H:%M:%S/ if $IS_WIN32;
         return $format;
     },
     'u' => sub {
-        my ( $time, $format ) = @_;
+        my ( $format, $time ) = @_;
         $format =~ s/%u/%w/ if $IS_WIN32;
         return $format;
     },
     'V' => sub {
-        my ( $time, $format ) = @_;
+        my ( $format, $time ) = @_;
         my $week = sprintf( "%02d", $time->week() );
         $format =~ s/%V/$week/ if $IS_WIN32;
         return $format;
     },
     'x' => sub {
-        my ( $time, $format ) = @_;
+        my ( $format, $time ) = @_;
         $format =~ s/%x/%a %d %b %Y/;
         return $format;
     },
-    'X' => sub {
-        my ( $time, $format ) = @_;
-        $format =~ s/%X/%I:%M:%S %p/;
-        return $format;
-    },
     'z' => sub {    #%[zZ] not portable if time parts are from gmtime
-        my ( $time, $format ) = @_;
+        my ( $format, $time ) = @_;
         $format =~ s/%z/+0000/ if not $time->[c_islocal];
         return $format;
     },
     'Z' => sub {
-        my ( $time, $format ) = @_;
+        my ( $format, $time ) = @_;
         $format =~ s/%Z/UTC/ if not $time->[c_islocal];
         return $format;
     },
@@ -541,12 +562,16 @@ my $strftime_trans_map = {
 sub strftime {
     my $time = shift;
     my $format = @_ ? shift(@_) : '%a, %d %b %Y %H:%M:%S %Z';
-    $format = $time->_translate_format($format, $strftime_trans_map);
+    $format = _translate_format($format, $strftime_trans_map, $time);
 
     return $format unless $format =~ /%/; #if translate removes everything
 
     return _strftime($format, $time->epoch, $time->[c_islocal]);
 }
+
+my $strptime_trans_map = {
+    %{$trans_map_common},
+};
 
 sub strptime {
     my $time = shift;
@@ -554,6 +579,7 @@ sub strptime {
     my $format = @_ ? shift(@_) : "%a, %d %b %Y %H:%M:%S %Z";
     my $islocal = (ref($time) ? $time->[c_islocal] : 0);
     my $locales = $Time::Piece::locale;
+    $format = _translate_format($format, $strptime_trans_map);
     my @vals = _strptime($string, $format, $islocal, $locales);
 #    warn(sprintf("got vals: %d-%d-%d %d:%d:%d\n", reverse(@vals[c_sec..c_year])));
     return scalar $time->_mktime(\@vals, $islocal);
@@ -737,14 +763,14 @@ sub truncate {
 #Given a format and a translate map, replace format flags in
 #accordance with the logic from the translation map subroutines
 sub _translate_format {
-    my ( $time, $format, $trans_map ) = @_;
+    my ( $format, $trans_map, $time ) = @_;
 
     $format =~ s/%%/\e\e/g; #escape the escape
     my $lexer = _build_format_lexer($format);
 
 	while(my $flag = $lexer->() ){
         next unless exists $trans_map->{$flag};
-		$format = $trans_map->{$flag}($time, $format);
+		$format = $trans_map->{$flag}($format, $time);
 	}
 
     $format =~ s/\e\e/%%/g;
