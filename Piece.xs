@@ -325,81 +325,19 @@ static char * _strptime(pTHX_ const char *, const char *, struct tm *,
 #define asizeof(a)	(sizeof (a) / sizeof ((a)[0]))
 
 struct lc_time_T {
-    const char *    mon[12];
-    const char *    month[12];
-    const char *    wday[7];
-    const char *    weekday[7];
-    const char *    X_fmt;
-    const char *    x_fmt;
-    const char *    c_fmt;
-    const char *    am;
-    const char *    pm;
-    const char *    date_fmt;
-    const char *    alt_month[12];
-    const char *    Ef_fmt;
-    const char *    EF_fmt;
+    char *  mon[12];
+    char *  month[12];
+    char *  wday[7];
+    char *  weekday[7];
+    char *  am;
+    char *  pm;
+    char *  AM;
+    char *  PM;
+    char *  alt_month[12];
 };
 
-static struct lc_time_T _time_localebuf;
-static int _time_using_locale;
 
-static const struct lc_time_T	_C_time_locale = {
-	{
-		"Jan", "Feb", "Mar", "Apr", "May", "Jun",
-		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-	}, {
-		"January", "February", "March", "April", "May", "June",
-		"July", "August", "September", "October", "November", "December"
-	}, {
-		"Sun", "Mon", "Tue", "Wed",
-		"Thu", "Fri", "Sat"
-	}, {
-		"Sunday", "Monday", "Tuesday", "Wednesday",
-		"Thursday", "Friday", "Saturday"
-	},
-
-	/* X_fmt */
-	"%H:%M:%S",
-
-	/*
-	** x_fmt
-	** Since the C language standard calls for
-	** "date, using locale's date format," anything goes.
-	** Using just numbers (as here) makes Quakers happier;
-	** it's also compatible with SVR4.
-	*/
-	"%m/%d/%y",
-
-	/*
-	** c_fmt (ctime-compatible)
-	** Not used, just compatibility placeholder.
-	*/
-	NULL,
-
-	/* am */
-	"AM",
-
-	/* pm */
-	"PM",
-
-	/* date_fmt */
-	"%a %Ef %X %Z %Y",
-	
-	{
-		"January", "February", "March", "April", "May", "June",
-		"July", "August", "September", "October", "November", "December"
-	},
-
-	/* Ef_fmt
-	** To determine short months / day order
-	*/
-	"%b %e",
-
-	/* EF_fmt
-	** To determine long months / day order
-	*/
-	"%B %e"
-};
+static struct lc_time_T _C_time_locale;
 
 #define Locale (&_C_time_locale)
 
