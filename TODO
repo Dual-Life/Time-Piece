@@ -6,3 +6,6 @@
     - move strptime() from XS to pure perl. See DateTime::Format::Strptime for a complicated example 
         Possible logic: parse date into tm struct, get epoch and then convert back to tm struct get a properly normalized form
     - Every "return 0" in the strptime case statement in Piece.xs needs to be preceded by a useful error statement
+    - _C_time_locale should only get populated when really needed
+    - use macros or something to get all the strlen stuff out of xs hash fetches
+    - make sure changing class vars effects all instances 
