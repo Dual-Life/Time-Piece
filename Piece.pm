@@ -552,7 +552,8 @@ sub strptime {
     my $string = shift;
     my $format = @_ ? shift(@_) : "%a, %d %b %Y %H:%M:%S %Z";
     my $islocal = (ref($time) ? $time->[c_islocal] : 0);
-    my @vals = _strptime($string, $format, $islocal);
+    my $locales = $Time::Piece::locale;
+    my @vals = _strptime($string, $format, $islocal, $locales);
 #    warn(sprintf("got vals: %d-%d-%d %d:%d:%d\n", reverse(@vals[c_sec..c_year])));
     return scalar $time->_mktime(\@vals, $islocal);
 }
@@ -767,16 +768,43 @@ sub _populate_locale {
     #get locale month/day names from posix strftime (from Piece.xs)
     my $locales = _get_localization();
 
+    $locales->{PM} ||= '';
+    $locales->{AM} ||= '';
+
     $locales->{pm} = lc $locales->{PM};
     $locales->{am} = lc $locales->{AM};
     #should probably figure out how to get a
     #region specific format for %c someday
     $locales->{c_fmt} = '';
 
-    @Time::Piece::FULLDAY_LIST = @{$locales->{weekday}};
-    @Time::Piece::DAY_LIST = @{$locales->{wday}};
-    @Time::Piece::FULLMON_LIST= @{$locales->{month}};
-    @Time::Piece::MON_LIST= @{$locales->{mon}};
+    #Set globals. If anything is
+    #weird just use original english
+    if( @{$locales->{weekday}} < 7 ){
+        @{$locales->{weekday}} = @FULLDAY_LIST;
+    }
+    else {
+        @FULLDAY_LIST = @{$locales->{weekday}};
+    }
+
+    if( @{$locales->{wday}} < 7 ){
+        @{$locales->{wday}} = @DAY_LIST;
+    }
+    else {
+        @DAY_LIST = @{$locales->{wday}};
+    }
+
+    if( @{$locales->{month}} < 12 ){
+        @{$locales->{month}} = @FULLMON_LIST;
+    }else {
+        @FULLMON_LIST = @{$locales->{month}};
+    }
+
+    if( @{$locales->{mon}} < 12 ){
+        @{$locales->{mon}} = @MON_LIST;
+    }
+    else{
+        @MON_LIST= @{$locales->{mon}};
+    }
 
     $Time::Piece::locale = $locales;
 }

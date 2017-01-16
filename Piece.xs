@@ -976,6 +976,36 @@ return_11part_tm(pTHX_ SV ** SP, struct tm *mytm)
        return;
 }
 
+
+static void _populate_C_time_locale(pTHX_ HV* locales )
+{
+    AV* alt_names   = (AV *) SvRV( *hv_fetch(locales, "alt_month", strlen("alt_month"), 0) );
+    AV* long_names  = (AV *) SvRV( *hv_fetch(locales, "month", strlen("month"), 0) );
+    AV* short_names = (AV *) SvRV( *hv_fetch(locales, "mon", strlen("mon"), 0) );
+    int i;
+
+    for (i = 0; i < 1 + (int) av_len( long_names ); i++) {
+        Locale->alt_month[i] = SvPV_nolen( (SV *) *av_fetch(alt_names, i, 0) );
+        Locale->month[i]     = SvPV_nolen( (SV *) *av_fetch(long_names, i, 0) );
+        Locale->mon[i]       = SvPV_nolen( (SV *) *av_fetch(short_names, i, 0) );
+    }
+
+    long_names = (AV *) SvRV( *hv_fetch(locales, "weekday", strlen("weekday"), 0) );
+    short_names = (AV *) SvRV( *hv_fetch(locales, "wday", strlen("wday"), 0) );
+
+    for (i = 0; i < 1 + (int) av_len( long_names ); i++) {
+        Locale->wday[i]    = SvPV_nolen( (SV *) *av_fetch(short_names, i, 0) );
+        Locale->weekday[i] = SvPV_nolen( (SV *) *av_fetch(long_names, i, 0) );
+    }
+
+    Locale->am = SvPV_nolen( (SV *) *hv_fetch(locales, "am", strlen("am"), 0) );
+    Locale->pm = SvPV_nolen( (SV *) *hv_fetch(locales, "pm", strlen("pm"), 0) );
+    Locale->AM = SvPV_nolen( (SV *) *hv_fetch(locales, "AM", strlen("AM"), 0) );
+    Locale->PM = SvPV_nolen( (SV *) *hv_fetch(locales, "PM", strlen("PM"), 0) );
+
+    return;
+}
+
 MODULE = Time::Piece     PACKAGE = Time::Piece
 
 PROTOTYPES: ENABLE
@@ -1051,16 +1081,27 @@ _tzset()
     return; /* skip XSUBPP's PUTBACK */
 
 void
-_strptime ( string, format, got_GMT )
+_strptime ( string, format, got_GMT, SV* localization )
 	char * string
 	char * format
 	int    got_GMT
   PREINIT:
        struct tm mytm;
        char * remainder;
+       HV   * locales;
   PPCODE:
        memset(&mytm, 0, sizeof(mytm));
        mytm.tm_isdst = -1; /* -1 means we don't know */
+
+       if( SvTYPE(SvRV( localization )) == SVt_PVHV ){
+           locales = (HV *)SvRV(localization);
+       }
+       else{
+            croak("_strptime requires a Hash Reference of locales");
+       }
+
+       //populate our locale data struct (used for %[AaBbPp] flags)
+       _populate_C_time_locale(aTHX_ locales );
 
        remainder = (char *)_strptime(aTHX_ string, format, &mytm, &got_GMT);
        if (remainder == NULL) {
