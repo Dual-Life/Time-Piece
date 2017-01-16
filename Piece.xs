@@ -556,12 +556,14 @@ label:
 			break;
 
 		case 'p':
+		case 'P':
 			/*
 			 * XXX This is bogus if parsed before hour-related
 			 * specifiers.
 			 */
             len = strlen(Locale->am);
-			if (strncasecmp(buf, Locale->am, len) == 0) {
+			if (strncasecmp(buf, Locale->am, len) == 0 ||
+					strncasecmp(buf, Locale->AM, len) == 0) {
 				if (tm->tm_hour > 12)
 					return 0;
 				if (tm->tm_hour == 12)
@@ -571,7 +573,8 @@ label:
 			}
 
 			len = strlen(Locale->pm);
-			if (strncasecmp(buf, Locale->pm, len) == 0) {
+			if (strncasecmp(buf, Locale->pm, len) == 0 ||
+					strncasecmp(buf, Locale->PM, len) == 0) {
 				if (tm->tm_hour > 12)
 					return 0;
 				if (tm->tm_hour != 12)
