@@ -1140,10 +1140,10 @@ _get_localization()
             ++mytm.tm_mon;
         }
 
-        tmp = hv_store(locales, "wday", strlen("wday"), newRV((SV *) wdays), 0);
-        tmp = hv_store(locales, "weekday", strlen("weekday"), newRV((SV *) weekdays), 0);
-        tmp = hv_store(locales, "mon", strlen("mon"), newRV((SV *) mons), 0);
-        tmp = hv_store(locales, "month", strlen("month"), newRV((SV *) months), 0);
+        tmp = hv_store(locales, "wday", strlen("wday"), newRV_noinc((SV *) wdays), 0);
+        tmp = hv_store(locales, "weekday", strlen("weekday"), newRV_noinc((SV *) weekdays), 0);
+        tmp = hv_store(locales, "mon", strlen("mon"), newRV_noinc((SV *) mons), 0);
+        tmp = hv_store(locales, "month", strlen("month"), newRV_noinc((SV *) months), 0);
         tmp = hv_store(locales, "alt_month", strlen("alt_month"), newRV((SV *) months), 0);
 
         len = strftime(buf, bufsize, "%p", &mytm);
