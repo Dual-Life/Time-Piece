@@ -25,21 +25,24 @@ is($t->mday,               9);
 is($t->day_of_month,       9);
 is($t->mon,                7);
 is($t->_mon,               6);
-is($t->monname,        'Jul');
-is($t->month,          'Jul');
-is($t->fullmonth,     'July');
 is($t->year,            2013);
 is($t->_year,            113);
 is($t->yy,              '13');
+#use localized names
+is($t->monname,   $Time::Piece::MON_LIST[$t->_mon]);
+is($t->month,     $Time::Piece::MON_LIST[$t->_mon]);
+is($t->fullmonth, $Time::Piece::FULLMON_LIST[$t->_mon]);
 
 cmp_ok($t->wday,        '==',         3);
 cmp_ok($t->_wday,       '==',         2);
 cmp_ok($t->day_of_week, '==',         2);
-cmp_ok($t->wdayname,    'eq',     'Tue');
-cmp_ok($t->day,         'eq',     'Tue');
-cmp_ok($t->fullday,     'eq', 'Tuesday');
 cmp_ok($t->yday,        '==',        189);
 cmp_ok($t->day_of_year, '==',        189);
+#use localized names
+cmp_ok($t->wdayname, 'eq', $Time::Piece::DAY_LIST[$t->_wday]);
+cmp_ok($t->day,      'eq', $Time::Piece::DAY_LIST[$t->_wday]);
+cmp_ok($t->fullday,  'eq', $Time::Piece::FULLDAY_LIST[$t->_wday]);
+
 
 # In GMT there should be no daylight savings ever.
 cmp_ok($t->isdst, '==', 0);

@@ -1,4 +1,4 @@
-use Test::More tests => 273;
+use Test::More tests => 282;
 
 my $is_win32 = ($^O =~ /Win32/);
 my $is_qnx = ($^O eq 'qnx');
@@ -18,21 +18,26 @@ is($t->mday,              29);
 is($t->day_of_month,      29);
 is($t->mon,                2);
 is($t->_mon,               1);
-is($t->monname,        'Feb');
-is($t->month,          'Feb');
-is($t->fullmonth, 'February');
 is($t->year,            2000);
 is($t->_year,            100);
 is($t->yy,              '00');
+#use localized names
+is($t->monname,   $Time::Piece::MON_LIST[$t->_mon]);
+is($t->month,     $Time::Piece::MON_LIST[$t->_mon]);
+is($t->fullmonth, $Time::Piece::FULLMON_LIST[$t->_mon]);
+
 
 cmp_ok($t->wday,        '==',         3);
 cmp_ok($t->_wday,       '==',         2);
 cmp_ok($t->day_of_week, '==',         2);
-cmp_ok($t->wdayname,    'eq',     'Tue');
-cmp_ok($t->day,         'eq',     'Tue');
-cmp_ok($t->fullday,     'eq', 'Tuesday');
 cmp_ok($t->yday,        '==',        59);
 cmp_ok($t->day_of_year, '==',        59);
+
+#use localized names
+cmp_ok($t->wdayname, 'eq', $Time::Piece::DAY_LIST[$t->_wday]);
+cmp_ok($t->day,      'eq', $Time::Piece::DAY_LIST[$t->_wday]);
+cmp_ok($t->fullday,  'eq', $Time::Piece::FULLDAY_LIST[$t->_wday]);
+
 
 # In GMT there should be no daylight savings ever.
 cmp_ok($t->isdst, '==', 0);
@@ -157,7 +162,7 @@ cmp_ok($t->day, 'eq', "Merdi");
 
 $t->day_list(@days);
 
-cmp_ok($t->day, 'eq', "Tue");
+cmp_ok($t->day, 'eq', $Time::Piece::DAY_LIST[$t->_wday]);
 
 my @nmdays = Time::Piece::day_list();
 is_deeply (\@nmdays, \@days);
@@ -251,7 +256,7 @@ for my $time (
     for my $strp_format (
         '%Y-%m-%d %H:%M:%S',
         '%Y-%m-%d %T',
-        '%A, %e %B %Y at %I:%M:%S %p',
+        '%A, %e %B %Y at %H:%M:%S',
         '%a, %e %b %Y at %r',
         '%s',
         '%c',
@@ -279,6 +284,7 @@ for my $time (
     TODO: for my $strp_format (
         '%u %U %Y %T', #%U,W,V currently skipped inside strptime
         '%w %W %y %T',
+        '%A, %e %B %Y at %I:%M:%S %p', #%I and %p can be locale dependant
     ) {
         local $TODO = "BUG: format $strp_format parses to wrong time";
         my $t_str   = $t->strftime($strp_format);
