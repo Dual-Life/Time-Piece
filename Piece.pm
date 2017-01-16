@@ -26,10 +26,11 @@ bootstrap Time::Piece $VERSION;
 
 my $DATE_SEP = '-';
 my $TIME_SEP = ':';
-our @MON_LIST;
-our @FULLMON_LIST;
-our @DAY_LIST;
-our @FULLDAY_LIST;
+our @MON_LIST = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
+our @FULLMON_LIST = qw(January February March April May June July
+                      August September October November December);
+our @DAY_LIST = qw(Sun Mon Tue Wed Thu Fri Sat);
+our @FULLDAY_LIST = qw(Sunday Monday Tuesday Wednesday Thursday Friday Saturday);
 my $IS_WIN32 = ($^O =~ /Win32/);
 
 our $locale;
