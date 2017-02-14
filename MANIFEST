@@ -2,10 +2,10 @@ Changes
 LICENSE
 Makefile.PL
 MANIFEST			This list of files
-Piece.pm
+lib/Time/Piece.pm
 Piece.xs
 README
-Seconds.pm
+lib/Time/Seconds.pm
 t/01base.t
 t/02core.t
 t/02core_dst.t
