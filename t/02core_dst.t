@@ -1,4 +1,4 @@
-use Test::More tests => 61;
+use Test::More tests => 56;
 
 my $is_win32 = ($^O =~ /Win32/);
 my $is_qnx = ($^O eq 'qnx');
@@ -28,21 +28,12 @@ is($t->_mon,               6);
 is($t->year,            2013);
 is($t->_year,            113);
 is($t->yy,              '13');
-#use localized names
-is($t->monname,   $Time::Piece::MON_LIST[$t->_mon]);
-is($t->month,     $Time::Piece::MON_LIST[$t->_mon]);
-is($t->fullmonth, $Time::Piece::FULLMON_LIST[$t->_mon]);
 
 cmp_ok($t->wday,        '==',         3);
 cmp_ok($t->_wday,       '==',         2);
 cmp_ok($t->day_of_week, '==',         2);
 cmp_ok($t->yday,        '==',        189);
 cmp_ok($t->day_of_year, '==',        189);
-#use localized names
-cmp_ok($t->wdayname, 'eq', $Time::Piece::DAY_LIST[$t->_wday]);
-cmp_ok($t->day,      'eq', $Time::Piece::DAY_LIST[$t->_wday]);
-cmp_ok($t->fullday,  'eq', $Time::Piece::FULLDAY_LIST[$t->_wday]);
-
 
 # In GMT there should be no daylight savings ever.
 cmp_ok($t->isdst, '==', 0);
@@ -136,18 +127,13 @@ SKIP: {
     cmp_ok(scalar($lt->tzoffset), 'eq', '-14400');
     cmp_ok($lt->strftime("%Y-%m-%d %H:%M:%S %Z"), 'eq', '2013-07-09 08:07:11 EDT');
     like  ($lt->strftime("%z"), qr/-0400|EDT/); #windows: %Z and %z are the same
+    is    ($lt->strftime("%s"), 1373371631, 'Epoch output is the same with EDT');
 
     $lt = localtime(1357733231); #2013-01-09T12:07:11
     cmp_ok(scalar($lt->tzoffset), 'eq', '-18000');
     cmp_ok($lt->strftime("%Y-%m-%d %H:%M:%S %Z"), 'eq', '2013-01-09 07:07:11 EST');
     like  ($lt->strftime("%z"), qr/-0500|EST/);
-    TODO: {
-        local $TODO = 'output format "%s" fails to include TZ offset';
-        is    ($lt->strftime("%s"), 1373371631, 'Epoch output is the same');
-    }
+    is    ($lt->strftime("%s"), 1357733231, 'Epoch output is the same with EST');
 }
-
-
-
 
 

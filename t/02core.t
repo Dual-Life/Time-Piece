@@ -1,4 +1,4 @@
-use Test::More tests => 282;
+use Test::More tests => 100;
 
 my $is_win32 = ($^O =~ /Win32/);
 my $is_qnx = ($^O eq 'qnx');
@@ -21,23 +21,12 @@ is($t->_mon,               1);
 is($t->year,            2000);
 is($t->_year,            100);
 is($t->yy,              '00');
-#use localized names
-is($t->monname,   $Time::Piece::MON_LIST[$t->_mon]);
-is($t->month,     $Time::Piece::MON_LIST[$t->_mon]);
-is($t->fullmonth, $Time::Piece::FULLMON_LIST[$t->_mon]);
-
 
 cmp_ok($t->wday,        '==',         3);
 cmp_ok($t->_wday,       '==',         2);
 cmp_ok($t->day_of_week, '==',         2);
 cmp_ok($t->yday,        '==',        59);
 cmp_ok($t->day_of_year, '==',        59);
-
-#use localized names
-cmp_ok($t->wdayname, 'eq', $Time::Piece::DAY_LIST[$t->_wday]);
-cmp_ok($t->day,      'eq', $Time::Piece::DAY_LIST[$t->_wday]);
-cmp_ok($t->fullday,  'eq', $Time::Piece::FULLDAY_LIST[$t->_wday]);
-
 
 # In GMT there should be no daylight savings ever.
 cmp_ok($t->isdst, '==', 0);
@@ -162,8 +151,6 @@ cmp_ok($t->day, 'eq', "Merdi");
 
 $t->day_list(@days);
 
-cmp_ok($t->day, 'eq', $Time::Piece::DAY_LIST[$t->_wday]);
-
 my @nmdays = Time::Piece::day_list();
 is_deeply (\@nmdays, \@days);
 
@@ -232,85 +219,6 @@ cmp_ok(
   951827696
 );
 
-#test reverse parsing
-sub check_parsed {
-    my ($t, $parsed, $t_str, $strp_format) = @_;
-
-    cmp_ok($parsed->epoch, '==', $t->epoch,
-        "Epochs match for $t_str with $strp_format");
-    cmp_ok($parsed->strftime($strp_format), 'eq',
-        $t->strftime($strp_format),
-        "Outputs formatted with $strp_format match");
-    cmp_ok($parsed->strftime(), 'eq', $t->strftime(),
-        'Outputs formatted as default match');
-}
-
-for my $time (
-    time(),       # Now, whenever that might be
-    1451606400,   # 2016-01-01 00:00
-    1451649600,   # 2016-01-01 12:00
-) {
-    local $ENV{LC_TIME} = 'en_US'; # Otherwise DD/MM vs MM/DD causes grief
-    my $t = gmtime($time);
-    my $t_local = localtime($time);
-    for my $strp_format (
-        '%Y-%m-%d %H:%M:%S',
-        '%Y-%m-%d %T',
-        '%A, %e %B %Y at %H:%M:%S',
-        '%a, %e %b %Y at %r',
-        '%s',
-        '%c',
-    ) {
-
-        my $t_str   = $t->strftime($strp_format);
-        my $parsed  = $t->strptime($t_str, $strp_format);
-
-        my $evalres = eval {
-            check_parsed ($t, $parsed, $t_str, $strp_format);
-        };
-
-        ok(defined $evalres, "Did not die parsing $t with '$strp_format'");
-
-        $t_str   = $t_local->strftime($strp_format);
-        $parsed  = $t_local->strptime($t_str, $strp_format);
-
-        $evalres = eval {
-            check_parsed ($t_local, $parsed, $t_str, $strp_format);
-        };
-
-        ok(defined $evalres, "Did not die parsing $t_local with '$strp_format'");
-    }
-
-    TODO: for my $strp_format (
-        '%u %U %Y %T', #%U,W,V currently skipped inside strptime
-        '%w %W %y %T',
-        '%A, %e %B %Y at %I:%M:%S %p', #%I and %p can be locale dependant
-    ) {
-        local $TODO = "BUG: format $strp_format parses to wrong time";
-        my $t_str   = $t->strftime($strp_format);
-        my $parsed  = $t->strptime($t_str, $strp_format);
-        check_parsed ($t, $parsed, $t_str, $strp_format);
-    }
-}
-
-
-for my $strp_format (
-    '%x %X', #hard coded to American localization
-) {
-    local $ENV{LC_TIME} = 'en_GB'; # DD/MM/YYYY standard
-    my $time     = 1475402400; # 2016-10-02T10:00:00 day is valid month
-    my $t        = gmtime($time);
-    my $t_str    = $t->strftime($strp_format);
-    my $parsed   = $t->strptime($t_str, $strp_format);
-    check_parsed ($t, $parsed, $t_str, $strp_format);
-
-    $time        = 1476871200; # 2016-10-19T10:00:00 day is not valid month
-    $t           = gmtime($time);
-    $t_str       = $t->strftime($strp_format);
-    my $evalres  = eval { my $parsed = $t->strptime($t_str, $strp_format); };
-    ok(defined $evalres, "Did not die parsing $t with '$strp_format'");
-}
-
 
 my $s = Time::Seconds->new(-691050);
 is($s->pretty, 'minus 7 days, 23 hours, 57 minutes, 30 seconds');
@@ -323,4 +231,4 @@ is($s->pretty, '10 seconds');
 $s = Time::Seconds->new(130);
 is($s->pretty, '2 minutes, 10 seconds');
 $s = Time::Seconds->new(7330);
-is($s->pretty, '2 hours, 2 minutes, 10 seconds');
+is($s->pretty, '2 hours, 2 minutes, 10 seconds', "Format correct");
