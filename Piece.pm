@@ -26,14 +26,14 @@ bootstrap Time::Piece $VERSION;
 
 my $DATE_SEP = '-';
 my $TIME_SEP = ':';
-our @MON_LIST = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
-our @FULLMON_LIST = qw(January February March April May June July
+my @MON_LIST = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
+my @FULLMON_LIST = qw(January February March April May June July
                       August September October November December);
-our @DAY_LIST = qw(Sun Mon Tue Wed Thu Fri Sat);
-our @FULLDAY_LIST = qw(Sunday Monday Tuesday Wednesday Thursday Friday Saturday);
+my @DAY_LIST = qw(Sun Mon Tue Wed Thu Fri Sat);
+my @FULLDAY_LIST = qw(Sunday Monday Tuesday Wednesday Thursday Friday Saturday);
 my $IS_WIN32 = ($^O =~ /Win32/);
 
-our $locale;
+my $LOCALE;
 
 use constant {
     'c_sec' => 0,
@@ -48,8 +48,6 @@ use constant {
     'c_epoch' => 9,
     'c_islocal' => 10,
 };
-
-INIT { _populate_locale(); }
 
 sub localtime {
     unshift @_, __PACKAGE__ unless eval { $_[0]->isa('Time::Piece') };
@@ -466,7 +464,7 @@ my $trans_map_common = {
 
     'c' => sub {
         my ( $format ) = @_;
-        if($locale->{PM} && $locale->{AM}){
+        if($LOCALE->{PM} && $LOCALE->{AM}){
             $format =~ s/%c/%a %d %b %Y %I:%M:%S %p/;
         }
         else{
@@ -476,7 +474,7 @@ my $trans_map_common = {
     },
     'r' => sub {
         my ( $format ) = @_;
-        if($locale->{PM} && $locale->{AM}){
+        if($LOCALE->{PM} && $LOCALE->{AM}){
             $format =~ s/%r/%I:%M:%S %p/;
         }
         else{
@@ -486,7 +484,7 @@ my $trans_map_common = {
     },
     'X' => sub {
         my ( $format ) = @_;
-        if($locale->{PM} && $locale->{AM}){
+        if($LOCALE->{PM} && $LOCALE->{AM}){
             $format =~ s/%X/%I:%M:%S %p/;
         }
         else{
@@ -578,7 +576,7 @@ sub strptime {
     my $string = shift;
     my $format = @_ ? shift(@_) : "%a, %d %b %Y %H:%M:%S %Z";
     my $islocal = (ref($time) ? $time->[c_islocal] : 0);
-    my $locales = $Time::Piece::locale;
+    my $locales = $LOCALE || &Time::Piece::_default_locale();
     $format = _translate_format($format, $strptime_trans_map);
     my @vals = _strptime($string, $format, $islocal, $locales);
 #    warn(sprintf("got vals: %d-%d-%d %d:%d:%d\n", reverse(@vals[c_sec..c_year])));
@@ -590,6 +588,7 @@ sub day_list {
     my @old = @DAY_LIST;
     if (@_) {
         @DAY_LIST = @_;
+        &Time::Piece::_default_locale();
     }
     return @old;
 }
@@ -599,6 +598,7 @@ sub mon_list {
     my @old = @MON_LIST;
     if (@_) {
         @MON_LIST = @_;
+        &Time::Piece::_default_locale();
     }
     return @old;
 }
@@ -791,7 +791,7 @@ sub _build_format_lexer {
     };
 }
 
-sub _populate_locale {
+sub use_locale {
     #get locale month/day names from posix strftime (from Piece.xs)
     my $locales = _get_localization();
 
@@ -805,7 +805,7 @@ sub _populate_locale {
     $locales->{c_fmt} = '';
 
     #Set globals. If anything is
-    #weird just use original english
+    #weird just use original
     if( @{$locales->{weekday}} < 7 ){
         @{$locales->{weekday}} = @FULLDAY_LIST;
     }
@@ -833,7 +833,32 @@ sub _populate_locale {
         @MON_LIST= @{$locales->{mon}};
     }
 
-    $Time::Piece::locale = $locales;
+    $LOCALE = $locales;
+}
+
+#$Time::Piece::LOCALE is used by strptime and thus needs to be
+#in sync with what ever users change to via day_list() and mon_list().
+#Should probably deprecate this use of gloabl state, but oh well...
+sub _default_locale {
+    my $locales = {};
+
+    @{ $locales->{weekday} } = @FULLDAY_LIST;
+    @{ $locales->{wday} }    = @DAY_LIST;
+    @{ $locales->{month} }   = @FULLMON_LIST;
+    @{ $locales->{mon} }     = @MON_LIST;
+    $locales->{alt_month} = $locales->{month};
+
+    $locales->{PM}    = 'PM';
+    $locales->{AM}    = 'AM';
+    $locales->{pm}    = 'pm';
+    $locales->{am}    = 'am';
+    $locales->{c_fmt} = '';
+
+    $LOCALE = $locales;
+}
+
+sub _locale {
+    return $LOCALE;
 }
 
 
