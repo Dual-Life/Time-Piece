@@ -62,7 +62,7 @@ for my $time (
     1451649600,                       # 2016-01-01 12:00
   )
 {
-    &Time::Piece::use_locale();
+    Time::Piece->use_locale();
     local $ENV{LC_TIME} = 'en_US';    # Otherwise DD/MM vs MM/DD causes grief
     my $t = gmtime($time);
     for my $strp_format (@dates) {
@@ -85,7 +85,7 @@ for my $time (
     1451649600,    # 2016-01-01 12:00
   )
 {
-    &Time::Piece::use_locale();
+    Time::Piece->use_locale();
     local $ENV{LC_TIME} = 'en_US';    # Otherwise DD/MM vs MM/DD causes grief
     my $t = localtime($time);
     for my $strp_format (@dates) {
