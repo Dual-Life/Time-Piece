@@ -967,7 +967,8 @@ methods.
 Both wdayname (day) and monname (month) allow passing in a list to use
 to index the name of the days against. This can be useful if you need
 to implement some form of localisation without actually installing or
-using locales.
+using locales. Note that this is a global override and will affect
+all Time::Piece instances.
 
   my @days = qw( Dimanche Lundi Merdi Mercredi Jeudi Vendredi Samedi );
 
@@ -984,6 +985,9 @@ Or for months:
 And locally for months:
 
   print localtime->month(@months);
+
+Or to populate with your current system locale call:
+    Time::Piece->use_locale();
 
 =head2 Date Calculations
 
@@ -1058,6 +1062,33 @@ For more information see "man strptime", which should be on all unix
 systems.
 
 Alternatively look here: L<http://www.unix.com/man-page/FreeBSD/3/strftime/>
+
+=head3 CAVEAT %A, %a, %B, %b, and friends
+
+Time::Piece::strptime by default can only parse American English date names.
+Meanwhile, Time::Piece->strftime() will return date names that use the current
+configured system locale. This means dates returned by strftime might not be
+able to be parsed by strptime. This is the default behavior and can be
+overridden by calling Time::Piece->use_locale(). This builds a list of the
+current locale's day and month names which strptime will use to parse with.
+Note this is a global override and will affect all Time::Piece instances.
+
+For instance with a German locale:
+
+    localtime->day_list();
+
+Returns
+
+    ( 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat' )
+
+While:
+
+    Time::Piece->use_locale();
+    localtime->day_list();
+
+Returns
+
+    ( 'So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa' )
 
 =head2 YYYY-MM-DDThh:mm:ss
 
