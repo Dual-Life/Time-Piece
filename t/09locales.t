@@ -1,4 +1,4 @@
-use Test::More tests => 154;
+use Test::More tests => 172;
 use Time::Piece;
 
 my $t = gmtime(1373371631);    # 2013-07-09T12:07:11
@@ -48,6 +48,7 @@ my @dates = (
     '%a, %e %b %Y at %r',
     '%s',
     '%c',
+    '%F %T',
 
 #TODO
 #    '%u %U %Y %T',                    #%U,W,V currently skipped inside strptime
