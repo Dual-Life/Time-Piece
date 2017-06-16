@@ -1032,6 +1032,11 @@ _strptime ( string, format, got_GMT, SV* localization )
        HV   * locales;
   PPCODE:
        memset(&mytm, 0, sizeof(mytm));
+
+       // sensible defaults.
+       mytm.tm_mday = 1;
+       mytm.tm_year = 70;
+       mytm.tm_wday = 4;
        mytm.tm_isdst = -1; /* -1 means we don't know */
 
        if( SvTYPE(SvRV( localization )) == SVt_PVHV ){
