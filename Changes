@@ -1,6 +1,9 @@
 Revision history for Time-Piece
 
 
+1.31_04 2017-06-16
+        - 
+
 1.31_03 2017-06-14
         - Don't use localization on default
         - Bugs with %s in strptime fixed
