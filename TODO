@@ -1,6 +1,9 @@
     - test tzoffset
     - make more tests (see Devel::Cover)
     - clean up xs
+    - test strptime with '%z' and '%Z'
+        - timegm(@tm_parts) to get ephoch, then CORE::localtime($epoch) to return right parts
+            - or return 'needs convert' flag, get epoch from GMT parts, then get parts from localtime()
     - allow cdate() to print as different formats
     - Document format flags that don't work everywhere (see comments in *.t files)
     - Every "return 0" in the strptime case statement in Piece.xs needs to be preceded by a useful error statement
@@ -10,7 +13,17 @@
     - add better %V support, newer versions of libc seem to have it: 
             https://opensource.apple.com/source/Libc/Libc-1158.20.4/stdtime/FreeBSD/strptime.c.auto.html
 
+for population of c_epoch (https://rt.cpan.org/Ticket/Display.html?id=118927)
+was done because of ephoch call for strftime change:
 
+-    return _strftime($format, (@$time)[c_sec..c_isdst]);
++
++    return _strftime($format, $time->epoch, $time->[c_islocal]);
+
+causes state change and test suites that called is_deeply would see the change and fail.
+so figure out how timelocal(@time_parts) gets ephoch and just move that into c perhaps.
+    (well that is not going to be so easy... so perhaps just change it back to old behavior and see what breaks on cpan)
+        (( perhaps check first if c_epoch is defined, if not just call timelocle and not set c_epoch))
 
 Document Time::Piece limits:
     dates before 1970
@@ -20,5 +33,6 @@ Document Time::Piece limits:
     uses epoch everywhere so don't try to calculate stuff before 1970
     mktime docs even state it is only for localtime (gets used for stuff from gmtime sometimes)
     TP is guaranteed to parse stuff that is returned from strftime, not so much any other random time string
+
 
 
