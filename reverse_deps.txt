@@ -8,13 +8,14 @@ Acme::PrettyCure
 Algorithm::Diff::HTMLTable
 Amazon::SES
 AnyEvent::Twitter
-Apache::AxKit::Provider::XMLDOMProvider
+#requires mod_perl:
+#Apache::AxKit::Provider::XMLDOMProvider
 App::authkeymgr
 App::BarnesNoble::WishListMinder
 App::BoolFindGrep
 App::CPAN::Fresh
 App::Dochazka::Common
-App::githook::perltidy
+App::githook_perltidy
 App::Git::Workflow
 App::KGB
 App::mgen
@@ -110,7 +111,7 @@ OpenGuides
 OS::Package
 OTRS::SphinxSearch
 Oxford::Calendar
-Parley
+#Parley #won't build, kinda old
 Parse::Crontab
 Plack::App::Directory::Apaxy
 Plack::Middleware::GitStatus
@@ -135,7 +136,6 @@ String::Errf
 String::Template
 Sweet::Home
 Task::Amon2
-Task::BeLike::BINGOS
 Task::DualLived
 Task::Litmus
 Test::BDD::Cucumber::Harness::Html
