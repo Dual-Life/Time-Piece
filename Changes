@@ -1,6 +1,9 @@
 Revision history for Time-Piece
 
 
+1.32    2017-06-20
+        -
+
 1.31_04 2017-06-16
         - Tests for %F and %T
         - Fix wrong test count on Windows
