@@ -24,6 +24,7 @@ extern "C" {
 #define    YEAR_ADJUST    (4*MONTH_TO_DAYS+1)
 /* as used here, the algorithm leaves Sunday as day 1 unless we adjust it */
 #define    WEEKDAY_BIAS    6    /* (1+6)%7 makes Sunday 0 again */
+#define    TP_BUF_SIZE     160
 
 #ifdef WIN32
 
@@ -958,7 +959,7 @@ _strftime(fmt, epoch, islocal = 1)
     int         islocal
     CODE:
     {
-        char tmpbuf[128];
+        char tmpbuf[TP_BUF_SIZE];
         struct tm mytm;
         size_t len;
 
@@ -967,7 +968,7 @@ _strftime(fmt, epoch, islocal = 1)
         else
             mytm = *gmtime(&epoch);
 
-        len = strftime(tmpbuf, sizeof tmpbuf, fmt, &mytm);
+        len = strftime(tmpbuf, TP_BUF_SIZE, fmt, &mytm);
         /*
         ** The following is needed to handle to the situation where
         ** tmpbuf overflows.  Basically we want to allocate a buffer
@@ -982,12 +983,12 @@ _strftime(fmt, epoch, islocal = 1)
         ** If there is a better way to make it portable, go ahead by
         ** all means.
         */
-        if ((len > 0 && len < sizeof(tmpbuf)) || (len == 0 && *fmt == '\0'))
+        if ((len > 0 && len < TP_BUF_SIZE) || (len == 0 && *fmt == '\0'))
         ST(0) = sv_2mortal(newSVpv(tmpbuf, len));
         else {
         /* Possibly buf overflowed - try again with a bigger buf */
         int     fmtlen = strlen(fmt);
-        int    bufsize = fmtlen + sizeof(tmpbuf);
+        int    bufsize = fmtlen + TP_BUF_SIZE;
         char*     buf;
         int    buflen;
 
@@ -1116,8 +1117,7 @@ _get_localization()
         AV* months = newAV();
         SV** tmp;
         size_t len;
-        const size_t bufsize = 150;
-        char buf[bufsize];
+        char buf[TP_BUF_SIZE];
         size_t i;
         time_t t = 1325386800; /*1325386800 = Sun, 01 Jan 2012 03:00:00 GMT*/
         struct tm mytm = *gmtime(&t);
@@ -1125,10 +1125,10 @@ _get_localization()
 
         for(i = 0; i < 7; ++i){
 
-            len = strftime(buf, bufsize, "%a", &mytm);
+            len = strftime(buf, TP_BUF_SIZE, "%a", &mytm);
             av_push(wdays, (SV *) newSVpvn(buf, len));
 
-            len = strftime(buf, bufsize, "%A", &mytm);
+            len = strftime(buf, TP_BUF_SIZE, "%A", &mytm);
             av_push(weekdays, (SV *) newSVpvn(buf, len));
 
             ++mytm.tm_wday;
@@ -1136,10 +1136,10 @@ _get_localization()
 
         for(i = 0; i < 12; ++i){
 
-            len = strftime(buf, bufsize, "%b", &mytm);
+            len = strftime(buf, TP_BUF_SIZE, "%b", &mytm);
             av_push(mons, (SV *) newSVpvn(buf, len));
 
-            len = strftime(buf, bufsize, "%B", &mytm);
+            len = strftime(buf, TP_BUF_SIZE, "%B", &mytm);
             av_push(months, (SV *) newSVpvn(buf, len));
 
             ++mytm.tm_mon;
@@ -1151,10 +1151,10 @@ _get_localization()
         tmp = hv_store(locales, "month", strlen("month"), newRV_noinc((SV *) months), 0);
         tmp = hv_store(locales, "alt_month", strlen("alt_month"), newRV((SV *) months), 0);
 
-        len = strftime(buf, bufsize, "%p", &mytm);
+        len = strftime(buf, TP_BUF_SIZE, "%p", &mytm);
         tmp = hv_store(locales, "AM", strlen("AM"), newSVpvn(buf,len), 0);
         mytm.tm_hour = 18;
-        len = strftime(buf, bufsize, "%p", &mytm);
+        len = strftime(buf, TP_BUF_SIZE, "%p", &mytm);
         tmp = hv_store(locales, "PM", strlen("PM"), newSVpvn(buf,len), 0);
 
         RETVAL = newRV_noinc((SV *)locales);
