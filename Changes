@@ -2,7 +2,12 @@ Revision history for Time-Piece
 
 
 1.32    2017-06-20
-        -
+        - Since 1.31:
+        - New truncate() method
+        - Add new flags: %F, %T, %P + more
+        - Add rudimentary locale support via use_locale()
+        - More tests
+        - Less bugs (hopefully)
 
 1.31_04 2017-06-16
         - Tests for %F and %T
