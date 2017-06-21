@@ -99,7 +99,7 @@ sub parse {
         @components = shift =~ /(\d+)$DATE_SEP(\d+)$DATE_SEP(\d+)(?:(?:T|\s+)(\d+)$TIME_SEP(\d+)(?:$TIME_SEP(\d+)))/;
         @components = reverse(@components[0..5]);
     }
-    return $class->new(_strftime("%s", timelocal(@components)));
+    return $class->new( timelocal(@components ));
 }
 
 sub _mktime {
