@@ -1157,6 +1157,10 @@ _get_localization()
         len = strftime(buf, TP_BUF_SIZE, "%p", &mytm);
         tmp = hv_store(locales, "PM", strlen("PM"), newSVpvn(buf,len), 0);
 
+        if(tmp == NULL || !SvOK( (SV *) *tmp)){
+            croak("Failed to get localization.");
+        }
+
         RETVAL = newRV_noinc((SV *)locales);
     OUTPUT:
         RETVAL
