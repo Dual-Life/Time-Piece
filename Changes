@@ -4,6 +4,7 @@ Revision history for Time-Piece
 1.3201  2017-06-21
         - Fix compile errors on MS
         - Use macro for buf sizes
+        - Remove compile warning
 
 1.32    2017-06-20
         - Since 1.31:
