@@ -13,7 +13,7 @@ WriteMakefile(
      (eval { ExtUtils::MakeMaker->VERSION(6.21) } ? (LICENSE => 'perl') : ()),
     'META_MERGE'        => {
         'resources' => {
-            'repository'  =>  'https://github.com/rjbs/Time-Piece',
+            'repository'  =>  'https://github.com/Dual-Life/Time-Piece',
         },
     },
 );
