@@ -7,6 +7,7 @@
     - allow cdate() to print as different formats
     - Document format flags that don't work everywhere (see comments in *.t files)
     - Every "return 0" in the strptime case statement in Piece.xs needs to be preceded by a useful error statement
+    - Check for int and size_t mismatches (like from strlen())
     - _C_time_locale should only get populated when really needed
     - use macros or something to get all the strlen stuff out of xs hash fetches
     - make sure changing class vars effects all instances 
