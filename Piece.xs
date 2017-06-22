@@ -1092,13 +1092,13 @@ _crt_localtime(time_t sec)
         else mytm = *localtime(&sec);
         /* Need to get: $s,$n,$h,$d,$m,$y */
 
-        EXTEND(SP, 9);
+        EXTEND(SP, 10);
         SP = push_common_tm(aTHX_ SP, &mytm);
         PUSHs(newSViv(mytm.tm_isdst));
         PUTBACK;
         {
             SV ** endsp = SP; /* the SV * under SP needs to be mortaled */
-            SP -= (9 - 1); /* subtract 0 based count of SVs to mortal */
+            SP -= (10 - 1); /* subtract 0 based count of SVs to mortal */
 /* mortal target of SP, then increment before function call
    so SP is already calculated before next comparison to not stall CPU */
             do {
