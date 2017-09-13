@@ -1,5 +1,7 @@
 Revision history for Time-Piece
 
+1.3202  2017-09-13
+        - Fix AIX compile
 
 1.3201  2017-06-22
         - Fix compile errors on MS
