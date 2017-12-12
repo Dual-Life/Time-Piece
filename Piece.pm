@@ -71,7 +71,10 @@ sub new {
 
     my $self;
 
-    if (defined($time)) {
+    if (ref($time)) {
+        $self = $time->[c_islocal] ? $class->localtime($time) : $class->gmtime($time);
+    }
+    elsif (defined($time)) {
         $self = $class->localtime($time);
     }
     elsif (ref($class) && $class->isa(__PACKAGE__)) {
