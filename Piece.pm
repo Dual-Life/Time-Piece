@@ -6,6 +6,7 @@ use XSLoader ();
 use Time::Seconds;
 use Carp;
 use Time::Local;
+use Scalar::Util qw/ blessed /;
 
 use Exporter ();
 
@@ -109,7 +110,7 @@ sub _mktime {
     $class = eval { (ref $class) && (ref $class)->isa('Time::Piece') }
            ? ref $class
            : $class;
-    if (ref($time)) {
+    if (ref($time) eq 'ARRAY' || UNIVERSAL::isa($time, 'Time::Piece')) {
         my @new_time = @$time;
         my @tm_parts = (@new_time[c_sec .. c_mon], $new_time[c_year]+1900);
         $new_time[c_epoch] = $islocal ? timelocal(@tm_parts) : timegm(@tm_parts);
@@ -682,7 +683,7 @@ sub add {
     if (UNIVERSAL::isa($rhs, 'Time::Seconds')) {
         $rhs = $rhs->seconds;
     }
-    croak "Invalid rhs of addition: $rhs" if ref($rhs);
+    croak "Invalid rhs of addition: $rhs" if ref($rhs) && !blessed($rhs);
 
     return $time->_mktime(($time->epoch + $rhs), $time->[c_islocal]);
 }
