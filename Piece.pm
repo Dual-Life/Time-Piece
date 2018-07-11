@@ -680,11 +680,8 @@ sub subtract {
 sub add {
     my $time = shift;
     my $rhs = shift;
-    if (UNIVERSAL::isa($rhs, 'Time::Seconds')) {
-        $rhs = $rhs->seconds;
-    }
-    croak "Invalid rhs of addition: $rhs" unless looks_like_number $rhs;
 
+    looks_like_number $rhs or croak "Invalid rhs of addition: $rhs";
     return $time->_mktime(($time->epoch + $rhs), $time->[c_islocal]);
 }
 
