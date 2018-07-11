@@ -653,9 +653,6 @@ use overload
 sub subtract {
     my $time = shift;
     my $rhs = shift;
-    if (UNIVERSAL::isa($rhs, 'Time::Seconds')) {
-        $rhs = $rhs->seconds;
-    }
 
     if (shift)
     {
@@ -673,6 +670,7 @@ sub subtract {
     }
     else {
         # rhs is seconds.
+        looks_like_number $rhs or croak "Invalid rhs of subtraction: $rhs";
         return $time->_mktime(($time->epoch - $rhs), $time->[c_islocal]);
     }
 }
