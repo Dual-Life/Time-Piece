@@ -6,7 +6,7 @@ use XSLoader ();
 use Time::Seconds;
 use Carp;
 use Time::Local;
-use Scalar::Util qw/ blessed /;
+use Scalar::Util qw/ looks_like_number /;
 
 use Exporter ();
 
@@ -683,7 +683,7 @@ sub add {
     if (UNIVERSAL::isa($rhs, 'Time::Seconds')) {
         $rhs = $rhs->seconds;
     }
-    croak "Invalid rhs of addition: $rhs" if ref($rhs) && !blessed($rhs);
+    croak "Invalid rhs of addition: $rhs" unless looks_like_number $rhs;
 
     return $time->_mktime(($time->epoch + $rhs), $time->[c_islocal]);
 }
