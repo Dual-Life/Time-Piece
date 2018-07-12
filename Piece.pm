@@ -6,7 +6,7 @@ use XSLoader ();
 use Time::Seconds;
 use Carp;
 use Time::Local;
-use Scalar::Util qw/ looks_like_number /;
+use Scalar::Util qw/ looks_like_number reftype /;
 
 use Exporter ();
 
@@ -110,7 +110,10 @@ sub _mktime {
     $class = eval { (ref $class) && (ref $class)->isa('Time::Piece') }
            ? ref $class
            : $class;
-    if (ref($time) eq 'ARRAY' || UNIVERSAL::isa($time, 'Time::Piece')) {
+    unless (looks_like_number $time) {
+        reftype $time eq 'ARRAY'
+          or croak 'expected time to be epoch seconds or arrayref';
+
         my @new_time = @$time;
         my @tm_parts = (@new_time[c_sec .. c_mon], $new_time[c_year]+1900);
         $new_time[c_epoch] = $islocal ? timelocal(@tm_parts) : timegm(@tm_parts);
