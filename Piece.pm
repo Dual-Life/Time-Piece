@@ -6,7 +6,7 @@ use XSLoader ();
 use Time::Seconds;
 use Carp;
 use Time::Local;
-use Scalar::Util qw/ looks_like_number reftype /;
+use Scalar::Util qw/ blessed /;
 
 use Exporter ();
 
@@ -110,10 +110,8 @@ sub _mktime {
     $class = eval { (ref $class) && (ref $class)->isa('Time::Piece') }
            ? ref $class
            : $class;
-    unless (looks_like_number $time) {
-        reftype $time eq 'ARRAY'
-          or croak 'expected time to be epoch seconds or arrayref';
 
+    if ((blessed($time) && $time->isa('Time::Piece')) || ref($time) eq 'ARRAY') {
         my @new_time = @$time;
         my @tm_parts = (@new_time[c_sec .. c_mon], $new_time[c_year]+1900);
         $new_time[c_epoch] = $islocal ? timelocal(@tm_parts) : timegm(@tm_parts);
@@ -668,12 +666,11 @@ sub subtract {
 	return $rhs - "$time";
     }
 
-    if (UNIVERSAL::isa($rhs, 'Time::Piece')) {
+    if (blessed($rhs) && $rhs->isa('Time::Piece')) {
         return Time::Seconds->new($time->epoch - $rhs->epoch);
     }
     else {
         # rhs is seconds.
-        looks_like_number $rhs or croak "Invalid rhs of subtraction: $rhs";
         return $time->_mktime(($time->epoch - $rhs), $time->[c_islocal]);
     }
 }
@@ -682,7 +679,6 @@ sub add {
     my $time = shift;
     my $rhs = shift;
 
-    looks_like_number $rhs or croak "Invalid rhs of addition: $rhs";
     return $time->_mktime(($time->epoch + $rhs), $time->[c_islocal]);
 }
 
