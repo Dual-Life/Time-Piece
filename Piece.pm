@@ -641,7 +641,8 @@ sub cdate {
 
 sub str_compare {
     my ($lhs, $rhs, $reverse) = @_;
-    if (UNIVERSAL::isa($rhs, 'Time::Piece')) {
+
+    if (blessed($rhs) && $rhs->isa('Time::Piece')) {
         $rhs = "$rhs";
     }
     return $reverse ? $rhs cmp $lhs->cdate : $lhs->cdate cmp $rhs;
@@ -687,7 +688,7 @@ use overload
 
 sub get_epochs {
     my ($lhs, $rhs, $reverse) = @_;
-    if (!UNIVERSAL::isa($rhs, 'Time::Piece')) {
+    unless (blessed($rhs) && $rhs->isa('Time::Piece')) {
         $rhs = $lhs->new($rhs);
     }
     if ($reverse) {
