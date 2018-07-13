@@ -107,9 +107,7 @@ sub parse {
 sub _mktime {
     my ($class, $time, $islocal) = @_;
 
-    $class = eval { (ref $class) && (ref $class)->isa('Time::Piece') }
-           ? ref $class
-           : $class;
+    $class = blessed($class) || $class;
 
     if ((blessed($time) && $time->isa('Time::Piece')) || ref($time) eq 'ARRAY') {
         my @new_time = @$time;
