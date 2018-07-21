@@ -64,13 +64,29 @@ sub gmtime {
     $class->_mktime($time, 0);
 }
 
+
+# Check if the supplied param is either a normal array (as returned from
+# localtime in list context), or is a Time::Piece-like wrapper around one.
+#
+# We need to differentiate between an array ref that we can interrogate and
+# other blessed objects (like overloaded values).
+sub _is_time_struct {
+    my $class = shift;
+
+    return 1 if ref($_[0]) eq 'ARRAY';
+    return 1 if blessed($_[0]) && $_[0]->isa('Time::Piece');
+
+    return 0;
+}
+
+
 sub new {
     my $class = shift;
     my ($time) = @_;
 
     my $self;
 
-    if (ref($time)) {
+    if ($class->_is_time_struct($time)) {
         $self = $time->[c_islocal] ? $class->localtime($time) : $class->gmtime($time);
     }
     elsif (defined($time)) {
@@ -109,7 +125,7 @@ sub _mktime {
 
     $class = blessed($class) || $class;
 
-    if ((blessed($time) && $time->isa('Time::Piece')) || ref($time) eq 'ARRAY') {
+    if ($class->_is_time_struct($time)) {
         my @new_time = @$time;
         my @tm_parts = (@new_time[c_sec .. c_mon], $new_time[c_year]+1900);
         $new_time[c_epoch] = $islocal ? timelocal(@tm_parts) : timegm(@tm_parts);
