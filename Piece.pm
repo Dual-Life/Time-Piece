@@ -66,15 +66,13 @@ sub gmtime {
 
 
 # Check if the supplied param is either a normal array (as returned from
-# localtime in list context), or is a Time::Piece-like wrapper around one.
+# localtime in list context) or a Time::Piece-like wrapper around one.
 #
 # We need to differentiate between an array ref that we can interrogate and
 # other blessed objects (like overloaded values).
 sub _is_time_struct {
-    my $class = shift;
-
-    return 1 if ref($_[0]) eq 'ARRAY';
-    return 1 if blessed($_[0]) && $_[0]->isa('Time::Piece');
+    return 1 if ref($_[1]) eq 'ARRAY';
+    return 1 if blessed($_[1]) && $_[1]->isa('Time::Piece');
 
     return 0;
 }
