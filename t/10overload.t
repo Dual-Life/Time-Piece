@@ -14,12 +14,12 @@ $t = Time::Piece->gmtime(Math::BigInt->new('315532800')); # 00:00:00 1/1/1980
 is $t->cdate, 'Tue Jan  1 00:00:00 1980', 'got same time with overloaded secs';
 
 
-my $one_hour = Math::BigInt->new('3600');
+my $big_hour = Math::BigInt->new('3600');
  
-$t = $t + $one_hour;
+$t = $t + $big_hour;
 is $t->cdate, 'Tue Jan  1 01:00:00 1980', 'add overloaded value';
  
-$t = $t - Math::BigInt->new('3600');
+$t = $t - $big_hour;
 is $t->cdate, 'Tue Jan  1 00:00:00 1980', 'sub overloaded value';
 
 done_testing;
