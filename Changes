@@ -1,5 +1,7 @@
 Revision history for Time-Piece
 
+1.3204_01  2018-07-28
+
 1.3204  2018-02-19
         - Fix compilation warnings.
 
@@ -15,7 +17,7 @@ Revision history for Time-Piece
         - Fix compile errors on MS
         - Use macro for buf sizes
         - Remove some compile warnings
-        - SP of by 1 in _crt_localtime
+        - SP off by 1 in _crt_localtime
 
 1.32    2017-06-20
         - Since 1.31:
