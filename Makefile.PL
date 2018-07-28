@@ -9,7 +9,7 @@ WriteMakefile(
     'ABSTRACT_FROM' => 'Piece.pm',
     'INSTALLDIRS' => ( ($] >= 5.009005 and $] < 5.011) ? 'perl' : 'site'),
     #'CCFLAGS' => '-Wall -Wextra -Wconversion',
-    'PREREQ_PM' => { Exporter => '5.57' },
+    'PREREQ_PM' => { Exporter => '5.57', 'Scalar::Util' => 0 },
      (eval { ExtUtils::MakeMaker->VERSION(6.21) } ? (LICENSE => 'perl') : ()),
     'META_MERGE'        => {
         'resources' => {
