@@ -19,7 +19,7 @@ our %EXPORT_TAGS = (
     ':override' => 'internal',
     );
 
-our $VERSION = '1.3204_01';
+our $VERSION = '1.33';
 
 XSLoader::load( 'Time::Piece', $VERSION );
 
