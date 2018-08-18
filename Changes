@@ -1,6 +1,7 @@
 Revision history for Time-Piece
 
-1.3204_01  2018-07-28
+1.33    2018-08-18
+        - Allow objects in overloaded methods
 
 1.3204  2018-02-19
         - Fix compilation warnings.
