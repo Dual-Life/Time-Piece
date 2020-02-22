@@ -1,6 +1,7 @@
 use Test::More tests => 56;
 
 # Skip if doing a regular install
+# Avoids mystery DST bugs [rt 128240], [GH40]
 plan skip_all => "DST tests not required for installation"
   unless ( $ENV{AUTOMATED_TESTING} );
 
