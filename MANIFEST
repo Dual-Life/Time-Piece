@@ -14,6 +14,10 @@ t/04mjd.t
 t/05overload.t
 t/06subclass.t
 t/07arith.t
+t/08truncate.t
+t/09locales.t
+t/10overload.t
+t/99legacy.t
 t/lib/Time/Piece/Twin.pm
 TODO
 reverse_deps.txt
