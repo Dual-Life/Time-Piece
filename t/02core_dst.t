@@ -126,7 +126,7 @@ cmp_ok($t->month_last_day, '==', 31); # test more
 SKIP: {
 	skip "Extra tests for Linux, BSD only.", 8 unless $is_linux or $is_mac or $is_bsd;
 
-    local $ENV{TZ} = "EST5EDT4";
+    local $ENV{TZ} = "EST5EDT4,M3.2.0/2,M11.1.0/2";
     Time::Piece::_tzset();
     my $lt = localtime(1373371631); #2013-07-09T12:07:11
     cmp_ok(scalar($lt->tzoffset), 'eq', '-14400');
