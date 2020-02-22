@@ -1152,6 +1152,14 @@ moves afoot to fix that in perl. Alternatively use 64 bit perl. Or if none
 of those are options, use the L<DateTime> module which has support for years
 well into the future and past.
 
+Also, the internal representation of Time::Piece->strftime deviates from the
+standard POSIX implementation in that is uses the epoch (instead of separate
+year, month, day parts). This change was added in version 1.30. If you must
+have a more traditional strftime (which will normally never calculate day
+light saving times correctly), you can pass the date parts from Time::Piece
+into the strftime function provided by the POSIX module
+(see strftime in L<POSIX> ).
+
 =head1 AUTHOR
 
 Matt Sergeant, matt@sergeant.org
