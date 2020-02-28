@@ -126,7 +126,7 @@ sub _mktime {
     if ($class->_is_time_struct($time)) {
         my @new_time = @$time;
         my @tm_parts = (@new_time[c_sec .. c_mon], $new_time[c_year]+1900);
-        #TODO: what happens here for data below 1970?
+
         $new_time[c_epoch] = $islocal ? timelocal(@tm_parts) : timegm(@tm_parts);
 
         return wantarray ? @new_time : bless [@new_time[0..9], $islocal], $class;
