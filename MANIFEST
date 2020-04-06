@@ -12,6 +12,7 @@ t/02core_dst.t
 t/03compare.t
 t/04mjd.t
 t/05overload.t
+t/06large.t
 t/06subclass.t
 t/07arith.t
 t/08truncate.t
