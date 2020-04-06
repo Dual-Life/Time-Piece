@@ -6,6 +6,8 @@ extern "C" {
 #include "perl.h"
 #include "XSUB.h"
 #include <time.h>
+#include <errno.h>
+#include <string.h>
 #ifdef __cplusplus
 }
 #endif
@@ -745,7 +747,7 @@ label:
 			int sverrno;
 			long n;
 			time_t t;
-            struct tm mytm;
+			struct tm mytm, *pmytm;
 
 			sverrno = errno;
 			errno = 0;
@@ -759,9 +761,12 @@ label:
             memset(&mytm, 0, sizeof(mytm));
 
             if(*got_GMT == 1)
-                mytm = *localtime(&t);
+                pmytm = localtime(&t);
             else
-                mytm = *gmtime(&t);
+                pmytm = gmtime(&t);
+            if (pmytm == NULL)
+                croak(strerror(errno));
+            mytm = *pmytm;
 
             tm->tm_sec    = mytm.tm_sec;
             tm->tm_min    = mytm.tm_min;
@@ -960,13 +965,17 @@ _strftime(fmt, epoch, islocal = 1)
     CODE:
     {
         char tmpbuf[TP_BUF_SIZE];
-        struct tm mytm;
+        struct tm mytm, *pmytm;
         size_t len;
 
         if(islocal == 1)
-            mytm = *localtime(&epoch);
+            pmytm = localtime(&epoch);
         else
-            mytm = *gmtime(&epoch);
+            pmytm = gmtime(&epoch);
+
+        if (pmytm == NULL)
+            croak(strerror(errno));
+        mytm = *pmytm;
 
         len = strftime(tmpbuf, TP_BUF_SIZE, fmt, &mytm);
         /*
@@ -1086,10 +1095,13 @@ _crt_localtime(time_t sec)
     ALIAS:
         _crt_gmtime = 1
     PREINIT:
-        struct tm mytm;
+        struct tm mytm, *pmytm;
     PPCODE:
-        if(ix) mytm = *gmtime(&sec);
-        else mytm = *localtime(&sec);
+        if(ix) pmytm = gmtime(&sec);
+        else pmytm = localtime(&sec);
+        if (pmytm == NULL)
+            croak(strerror(errno));
+        mytm = *pmytm;
         /* Need to get: $s,$n,$h,$d,$m,$y */
 
         EXTEND(SP, 10);
