@@ -806,8 +806,14 @@ sub use_locale {
     #get locale month/day names from posix strftime (from Piece.xs)
     my $locales = _get_localization();
 
-    $locales->{PM} ||= '';
-    $locales->{AM} ||= '';
+    #If AM and PM are the same, set both to ''
+    if (   !$locales->{PM}
+        || !$locales->{AM}
+        || ( $locales->{PM} eq $locales->{AM} ) )
+    {
+        $locales->{PM} = '';
+        $locales->{AM} = '';
+    }
 
     $locales->{pm} = lc $locales->{PM};
     $locales->{am} = lc $locales->{AM};
