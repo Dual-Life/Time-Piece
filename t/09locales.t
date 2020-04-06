@@ -29,6 +29,10 @@ $t->day_list(@frdays);
 cmp_ok( $t->day,     'eq', &Time::Piece::_locale()->{wday}[ $t->_wday ] );
 cmp_ok( $t->fullday, 'eq', &Time::Piece::_locale()->{weekday}[ $t->_wday ] );
 
+
+#load local locale
+Time::Piece->use_locale();
+
 #test reverse parsing
 sub check_parsed
 {
@@ -68,8 +72,6 @@ for my $time (
     1451649600,    # 2016-01-01 12:00
   )
 {
-    Time::Piece->use_locale();
-    local $ENV{LC_TIME} = 'en_US';    # Otherwise DD/MM vs MM/DD causes grief
     my $t = gmtime($time);
     for my $strp_format (@dates) {
 
@@ -91,8 +93,6 @@ for my $time (
     1451649600,    # 2016-01-01 12:00
   )
 {
-    Time::Piece->use_locale();
-    local $ENV{LC_TIME} = 'en_US';    # Otherwise DD/MM vs MM/DD causes grief
     my $t = localtime($time);
     for my $strp_format (@dates) {
 
