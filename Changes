@@ -1,5 +1,11 @@
 Revision history for Time-Piece
 
+1.3401  2020-04-06
+        - Add tests for negative and large epochs
+        - Remove %I tests from 09locales.t
+        - Exempt more tests unless $ENV{AUTOMATED_TESTING}
+        - Safeguards around 12-hour time notation
+
 1.34    2020-02-27
         - Exempt DST tests unless $ENV{AUTOMATED_TESTING}
         - Add recent test files to MANIFEST (openstrike)
