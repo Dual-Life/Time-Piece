@@ -715,6 +715,14 @@ sub compare {
     return $lhs <=> $rhs;
 }
 
+sub add_days {
+    my ($time, $num_days) = @_;
+
+    croak("add_days requires a number of days") unless defined($num_days);
+
+    return add($time, $num_days * ONE_DAY);
+}
+
 sub add_months {
     my ($time, $num_months) = @_;
 
