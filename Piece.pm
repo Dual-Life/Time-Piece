@@ -855,7 +855,7 @@ sub use_locale {
 
 #$Time::Piece::LOCALE is used by strptime and thus needs to be
 #in sync with what ever users change to via day_list() and mon_list().
-#Should probably deprecate this use of gloabl state, but oh well...
+#Should probably deprecate this use of global state, but oh well...
 sub _default_locale {
     my $locales = {};
 
