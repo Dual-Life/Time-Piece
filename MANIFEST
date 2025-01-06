@@ -5,6 +5,7 @@ MANIFEST			This list of files
 Piece.pm
 Piece.xs
 README
+reverse_deps.txt
 Seconds.pm
 t/01base.t
 t/02core.t
@@ -21,4 +22,3 @@ t/10overload.t
 t/99legacy.t
 t/lib/Time/Piece/Twin.pm
 TODO
-reverse_deps.txt
