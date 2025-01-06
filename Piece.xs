@@ -1,14 +1,8 @@
-#ifdef __cplusplus
-extern "C" {
-#endif
 #define PERL_NO_GET_CONTEXT
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
 #include <time.h>
-#ifdef __cplusplus
-}
-#endif
 
 
 #define    DAYS_PER_YEAR    365
