@@ -4,7 +4,6 @@
 #include "XSUB.h"
 #include <time.h>
 
-
 #define    DAYS_PER_YEAR    365
 #define    DAYS_PER_QYEAR    (4*DAYS_PER_YEAR+1)
 #define    DAYS_PER_CENT    (25*DAYS_PER_QYEAR-1)
