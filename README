@@ -3,7 +3,7 @@
 Time::Piece
 ===========
 
-This module supercedes Time::Object (and has a better name).
+This module supersedes Time::Object (and has a better name).
 
 At this time the module is almost identical to Time::Object, with
 the exception of strptime support. People using Time::Object should
