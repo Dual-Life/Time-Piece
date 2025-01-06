@@ -1,5 +1,10 @@
 Revision history for Time-Piece
 
+1.35    2025-01-06
+        - Convert tests from Test.pm to Test::More
+        - Eliminate C++ guards
+        - Fix minor typoes/spelling mistakes in comments/docs
+
 1.3401  2020-04-06
         - Add tests for negative and large epochs
         - Remove %I tests from 09locales.t
