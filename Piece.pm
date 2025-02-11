@@ -559,7 +559,7 @@ my $strftime_trans_map = {
     },
     'x' => sub {
         my ( $format, $time ) = @_;
-        $format =~ s/%x/%a %d %b %Y/;
+        $format =~ s/%x/%a %d %b %Y/ if not $time->[c_islocal];
         return $format;
     },
     'z' => sub {    #%[zZ] not portable if time parts are from gmtime
