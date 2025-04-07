@@ -704,6 +704,14 @@ sub compare {
     return $lhs <=> $rhs;
 }
 
+sub add_days {
+    my ($time, $num_days) = @_;
+
+    croak("add_days requires a number of days") unless defined($num_days);
+
+    return add($time, $num_days * ONE_DAY);
+}
+
 sub add_months {
     my ($time, $num_months) = @_;
 
@@ -1027,13 +1035,14 @@ while examining the object will print the number of seconds (because
 of the overloading), you can also get the number of minutes, hours,
 days, weeks and years in that delta, using the Time::Seconds API.
 
-In addition to adding seconds, there are two APIs for adding months and
-years:
+In addition to adding seconds, there are three APIs for adding days,
+months and years:
 
+    $t = $t->add_days(7);
     $t = $t->add_months(6);
     $t = $t->add_years(5);
 
-The months and years can be negative for subtractions. Note that there
+The argument of these APIs  can be negative for subtractions. Note that there
 is some "strange" behaviour when adding and subtracting months at the
 ends of months. Generally when the resulting month is shorter than the
 starting month then the number of overlap days is added. For example
