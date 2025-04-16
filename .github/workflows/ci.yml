@@ -1,0 +1,63 @@
+name: CI Tests
+
+on:
+  push:
+    branches: [ main, master, dev_test_*, feature/* ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  test:
+    name: Test on ${{ matrix.os }} with Perl ${{ matrix.perl }}
+    runs-on: ${{ matrix.os }}
+    env:
+      AUTOMATED_TESTING: 1
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest, windows-2019]
+        perl: ["5.8", "latest"]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Perl
+      uses: shogo82148/actions-setup-perl@v1
+      with:
+        perl-version: ${{ matrix.perl }}
+
+    - name: Show Perl version
+      run: perl -V
+
+    - name: Install dependencies
+      run: |
+        cpanm --installdeps --notest .
+        
+    - name: Build and test
+      run: |
+        perl Makefile.PL
+        perl -MConfig -e 'system $Config{make}'
+        perl -MConfig -e 'system ($Config{make}, "test")'
+
+  test-freebsd:
+    name: Test on FreeBSD
+    runs-on: ubuntu-latest
+    env:
+      AUTOMATED_TESTING: 1
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Test on FreeBSD
+      uses: vmactions/freebsd-vm@v1
+      with:
+        envs: 'AUTOMATED_TESTING'
+        usesh: true
+        prepare: |
+          pkg install -y perl5 p5-App-cpanminus
+        run: |
+          perl -V
+          perl Makefile.PL
+          make
+          make test
