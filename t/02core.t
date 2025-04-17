@@ -1,4 +1,4 @@
-use Test::More tests => 100;
+use Test::More tests => 101;
 
 my $is_win32 = ($^O =~ /Win32/);
 my $is_qnx = ($^O eq 'qnx');
@@ -219,6 +219,11 @@ cmp_ok(
   951827696
 );
 
+is(
+  eval { Time::Piece->strptime('1899-12-31', '%Y-%m-%d')->epoch() } || $@,
+  Time::Piece->strptime('1900-01-01', '%Y-%m-%d')->epoch - Time::Seconds::ONE_DAY,
+  'before 1900'
+);
 
 my $s = Time::Seconds->new(-691050);
 is($s->pretty, 'minus 7 days, 23 hours, 57 minutes, 30 seconds');
