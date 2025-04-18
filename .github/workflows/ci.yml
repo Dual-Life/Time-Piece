@@ -36,28 +36,27 @@ jobs:
         
     - name: Build and test
       run: |
-        perl Makefile.PL
-        perl -MConfig -e 'system $Config{make}'
-        perl -MConfig -e 'system ($Config{make}, "test")'
+        cpanm --test-only -v .
 
-  test-freebsd:
-    name: Test on FreeBSD
+  test-bsd:
+    name: Test on BSD
     runs-on: ubuntu-latest
+    # 'false' to disable BSD tests
+    if: true
     env:
       AUTOMATED_TESTING: 1
 
     steps:
     - uses: actions/checkout@v4
 
-    - name: Test on FreeBSD
-      uses: vmactions/freebsd-vm@v1
+    - name: Test on BSD
+      uses: vmactions/openbsd-vm@v1
       with:
         envs: 'AUTOMATED_TESTING'
         usesh: true
+        copyback: false
         prepare: |
-          pkg install -y perl5 p5-App-cpanminus
-        run: |
           perl -V
+        run: |
           perl Makefile.PL
-          make
           make test
