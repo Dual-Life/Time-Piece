@@ -499,6 +499,21 @@ my $strftime_trans_map = {
         $format =~ s/%F/%Y-%m-%d/;
         return $format;
     },
+    'k' => sub {
+        my ( $format, $time ) = @_;
+        my $hr = sprintf( "%2d", $time->[c_hour] );
+        $format =~ s/%k/$hr/ if $IS_WIN32;
+        return $format;
+    },
+    'l' => sub {
+        my ( $format, $time ) = @_;
+        if ($IS_WIN32) {
+            my $hr = $time->[c_hour] > 12 ? $time->[c_hour] - 12 : $time->[c_hour];
+            $hr = sprintf( "%2d", $hr );
+            $format =~ s/%l/$hr/ if $IS_WIN32;
+        }
+        return $format;
+    },
     'r' => sub {
         my ( $format ) = @_;
         if($LOCALE->{PM} && $LOCALE->{AM}){
@@ -767,7 +782,7 @@ my $_format_cache = {};
 #accordance with the logic from the translation map subroutines
 sub _translate_format {
     my ( $format, $trans_map, $time ) = @_;
-    my $bad_flags = $IS_WIN32 ? qr/%([seVzZ])/ : qr/%([szZ])/;
+    my $bad_flags = $IS_WIN32 ? qr/%([eklsVzZ])/ : qr/%([szZ])/;
     my $can_cache = ($format !~ $bad_flags) ? 1 : 0;
 
     if ( $can_cache && exists $_format_cache->{$format} ){
