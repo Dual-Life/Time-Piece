@@ -484,8 +484,9 @@ my $strftime_trans_map = {
         return $format;
     },
     'e' => sub {
-        my ( $format ) = @_;
-        $format =~ s/%e/%d/ if $IS_WIN32;
+        my ( $format, $time ) = @_;
+        my $day = sprintf( "%2d", $time->[c_mday] );
+        $format =~ s/%e/$day/ if $IS_WIN32;
         return $format;
     },
     'D' => sub {
@@ -766,7 +767,8 @@ my $_format_cache = {};
 #accordance with the logic from the translation map subroutines
 sub _translate_format {
     my ( $format, $trans_map, $time ) = @_;
-    my $can_cache = ($format !~ /%([sVzZ])/) ? 1 : 0;
+    my $bad_flags = $IS_WIN32 ? qr/%([seVzZ])/ : qr/%([szZ])/;
+    my $can_cache = ($format !~ $bad_flags) ? 1 : 0;
 
     if ( $can_cache && exists $_format_cache->{$format} ){
         return $_format_cache->{$format};

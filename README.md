@@ -31,7 +31,7 @@ Larry Wall on the perl5-porters mailing list here:
 
 # USAGE
 
-After importing or 'using'  this module, when you use localtime or gmtime in a scalar
+After importing this module, when you use localtime or gmtime in a scalar
 context, rather than getting an ordinary scalar string representing the
 date and time, you get a Time::Piece object, whose stringification happens
 to produce the same effect as the localtime and gmtime functions. There is 
@@ -233,14 +233,14 @@ Returns
 
 ## YYYY-MM-DDThh:mm:ss
 
-The ISO 86011 standard defines the date format to be YYYY-MM-DD, and
+The ISO 8601 standard defines the date format to be YYYY-MM-DD, and
 the time format to be hh:mm:ss (24 hour clock), and if combined, they
 should be concatenated with date first and with a capital 'T' in front
 of the time.
 
 ## Week Number
 
-The _week number_ may be an known concept to some readers.  The ISO
+The _week number_ may be an unknown concept to some readers.  The ISO
 8601 standard defines that weeks begin on a Monday and week 1 of the
 year is the week that includes both January 4th and the first Thursday
 of the year.  In other words, if the first Monday of January is the
@@ -293,7 +293,7 @@ into the strftime function provided by the POSIX module
 
 # AUTHOR
 
-Matt Sergeant, matt@sergeant.org, me
+Matt Sergeant, matt@sergeant.org
 Jarkko Hietaniemi, jhi@iki.fi (while creating Time::Piece for core perl)
 
 # COPYRIGHT AND LICENSE
@@ -305,7 +305,7 @@ as Perl.
 
 # SEE ALSO
 
-The excellent Calendar FAQ at [http://www.tondering.dk/claus/calendar.html](http://www.tondering.dk/claus/calendar.html)!
+The excellent Calendar FAQ at [http://www.tondering.dk/claus/calendar.html](http://www.tondering.dk/claus/calendar.html)
 
 # BUGS
 

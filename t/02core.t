@@ -1,6 +1,5 @@
 use Test::More tests => 100;
 
-my $is_win32 = ($^O =~ /Win32/);
 my $is_qnx = ($^O eq 'qnx');
 my $is_vos = ($^O eq 'vos');
 
