@@ -31,6 +31,7 @@ my @FULLMON_LIST = qw(January February March April May June July
 my @DAY_LIST = qw(Sun Mon Tue Wed Thu Fri Sat);
 my @FULLDAY_LIST = qw(Sunday Monday Tuesday Wednesday Thursday Friday Saturday);
 my $IS_WIN32 = ($^O =~ /Win32/);
+my $IS_LINUX = ($^O =~ /linux/i);
 
 my $LOCALE;
 
@@ -514,6 +515,12 @@ my $strftime_trans_map = {
         }
         return $format;
     },
+    'P' => sub {
+        my ( $format ) = @_;
+        # %P seems to be linux only
+        $format =~ s/%P/%p/ unless $IS_LINUX;
+        return $format;
+    },
     'r' => sub {
         my ( $format ) = @_;
         if($LOCALE->{PM} && $LOCALE->{AM}){
@@ -830,8 +837,14 @@ sub use_locale {
         $locales->{AM} = '';
     }
 
-    $locales->{pm} = lc $locales->{PM};
-    $locales->{am} = lc $locales->{AM};
+    if (   !$locales->{pm}
+        || !$locales->{am}
+        || ( $locales->{pm} eq $locales->{am} ) )
+    {
+        $locales->{pm} = lc $locales->{PM};
+        $locales->{am} = lc $locales->{AM};
+    }
+
     #should probably figure out how to get a
     #region specific format for %c someday
     $locales->{c_fmt} = '';

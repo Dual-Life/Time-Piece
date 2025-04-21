@@ -1146,9 +1146,13 @@ _get_localization()
 
         len = strftime(buf, TP_BUF_SIZE, "%p", &mytm);
         tmp = hv_store(locales, "AM", 2, newSVpvn(buf,len), 0);
+        len = strftime(buf, TP_BUF_SIZE, "%P", &mytm);
+        tmp = hv_store(locales, "am", 2, newSVpvn(buf,len), 0);
         mytm.tm_hour = 18;
         len = strftime(buf, TP_BUF_SIZE, "%p", &mytm);
         tmp = hv_store(locales, "PM", 2, newSVpvn(buf,len), 0);
+        len = strftime(buf, TP_BUF_SIZE, "%P", &mytm);
+        tmp = hv_store(locales, "pm", 2, newSVpvn(buf,len), 0);
 
         if(tmp == NULL || !SvOK( (SV *) *tmp)){
             croak("Failed to get localization.");

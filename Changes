@@ -1,5 +1,8 @@
 Revision history for Time-Piece
 
+1.3x    2025-0x-0x
+        - Windows support for %k, %l, %P
+
 1.36    2025-04-06
         - Parsing speed up for strftime and strptime
 

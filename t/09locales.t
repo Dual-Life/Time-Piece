@@ -58,31 +58,28 @@ my @dates = (
     '%s',
     '%c',
     '%F %T',
+    '%D %r',
 
 #TODO
 #    '%u %U %Y %T',                    #%U,W,V currently skipped inside strptime
 #    '%w %W %y %T',
-#    '%A, %e %B %Y at %I:%M:%S %p',    #%I and %p can be locale dependant
+    '%A, %e %B %Y at %I:%M:%S %P',    #%I and %p can be locale dependant
     '%x %X',    #hard coded to American localization
 );
 
 for my $time (
     time(),        # Now, whenever that might be
     1451606400,    # 2016-01-01 00:00
-    1451649600,    # 2016-01-01 12:00
+    1451653500,    # 2016-01-01 13:05
   )
 {
     my $t = gmtime($time);
+
     for my $strp_format (@dates) {
-
         my $t_str = $t->strftime($strp_format);
-        my $parsed;
-      SKIP: {
-            eval { $parsed = $t->strptime( $t_str, $strp_format ); };
-            skip "gmtime strptime parse failed", 3 if $@;
-            check_parsed( $t, $parsed, $t_str, $strp_format );
-        }
+        my $parsed = $t->strptime( $t_str, $strp_format );
 
+        check_parsed( $t, $parsed, $t_str, $strp_format );
     }
 
 }
@@ -90,7 +87,7 @@ for my $time (
 for my $time (
     time(),        # Now, whenever that might be
     1451606400,    # 2016-01-01 00:00
-    1451649600,    # 2016-01-01 12:00
+    1451653500,    # 2016-01-01 13:05
   )
 {
     my $t = localtime($time);
@@ -108,4 +105,4 @@ for my $time (
 
 }
 
-done_testing(154);
+done_testing(190);
