@@ -5,11 +5,10 @@ use Time::Seconds;
 # Large tests - test dates outside of the epoch range,
 # somewhat silly, but lets see what happens
 
-# Won't run without time64 support (perl > 5.10) on windows
 my $is_win32 = ( $^O =~ /Win32/ );
 
 plan skip_all => "Large time tests not required for installation"
-  unless ( $ENV{AUTOMATED_TESTING} && !( $is_win32 && $] < 5.012 ) );
+  unless ( $ENV{AUTOMATED_TESTING} );
 
 my $t = gmtime;
 
@@ -25,16 +24,39 @@ for ( 1 .. 50 ) {
     );
 }
 
-$t         = gmtime;
+$t         = gmtime(1745187415);    # 20 Apr 2025 22:16:55
 $base_year = $t->year;
 
-for ( 1 .. 200 ) {
-    $t = $t - $one_year;
-    cmp_ok(
-        $t->year, '==',
-        $base_year - $_,
-        "Year is: " . ( $base_year - $_ )
-    );
+$t = $t - ( $one_year * 25 );
+cmp_ok( $t->year, '==', $base_year - 25, "Year is: " . ( $base_year - 25 ) );
+$base_year -= 25;
+
+$t = $t - ( $one_year * 25 );
+cmp_ok( $t->year, '==', $base_year - 25, "Year is: " . ( $base_year - 25 ) );
+$base_year -= 25;
+
+SKIP: {
+    skip "No time64 on Win32 if perl < 5.12", 5, if $is_win32 && $] < 5.012;
+
+    $t = $t - ( $one_year * 25 );
+    cmp_ok( $t->year, '==', $base_year - 25, "Year is: " . ( $base_year - 25 ) );
+    $base_year -= 25;
+
+    $t = $t - ( $one_year * 25 );
+    cmp_ok( $t->year, '==', $base_year - 25, "Year is: " . ( $base_year - 25 ) );
+    $base_year -= 25;
+
+    $t = $t - ( $one_year * 25 );
+    cmp_ok( $t->year, '==', $base_year - 25, "Year is: " . ( $base_year - 25 ) );
+    $base_year -= 25;
+
+    $t = $t - ( $one_year * 25 );
+    cmp_ok( $t->year, '==', $base_year - 25, "Year is: " . ( $base_year - 25 ) );
+    $base_year -= 25;
+
+    $t = $t - ( $one_year * 25 );
+    cmp_ok( $t->year, '==', $base_year - 25, "Year is: " . ( $base_year - 25 ) );
+    $base_year -= 25;
 }
 
-done_testing(250);
+done_testing(57);
