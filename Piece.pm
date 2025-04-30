@@ -297,7 +297,12 @@ sub yday {
 
 sub isdst {
     my $time = shift;
-    $time->[c_isdst];
+    return 0 unless $time->[c_islocal];
+    # Calculate dst based on current TZ
+    if ( $time->[c_isdst] == -1 ) {
+        $time->[c_isdst] = ( CORE::localtime( $time->epoch ) )[-1];
+    }
+    return $time->[c_isdst];
 }
 
 *daylight_savings = \&isdst;
