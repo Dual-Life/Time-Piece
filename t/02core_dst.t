@@ -120,7 +120,7 @@ cmp_ok($t->month_last_day, '==', 31); # test more
 
 
 SKIP: {
-	skip "Extra tests for Linux, BSD only.", 8 unless $is_linux or $is_mac or $is_bsd;
+	skip "Extra tests for Linux, BSD only.", 9 unless $is_linux or $is_mac or $is_bsd;
 
     local $ENV{TZ} = "EST5EDT4,M3.2.0/2,M11.1.0/2";
     Time::Piece::_tzset();
@@ -129,6 +129,7 @@ SKIP: {
     cmp_ok($lt->strftime("%Y-%m-%d %H:%M:%S %Z"), 'eq', '2013-07-09 05:07:11 EDT');
     like  ($lt->strftime("%z"), qr/-0400|EDT/); #windows: %Z and %z are the same
     is    ($lt->strftime("%s"), 1373360831, 'Epoch output is the same with EDT');
+    cmp_ok($lt->strptime("2013-07-09 05:07:11 EDT", "%Y-%m-%d %H:%M:%S %Z")->isdst, '==', '1');
 
     $lt = localtime(1357733231); #2013-01-09T09:07:11
     cmp_ok(scalar($lt->tzoffset), 'eq', '-18000');
@@ -137,4 +138,4 @@ SKIP: {
     is    ($lt->strftime("%s"), 1357733231, 'Epoch output is the same with EST');
 }
 
-done_testing(58);
+done_testing(59);
