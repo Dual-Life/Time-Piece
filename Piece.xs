@@ -840,7 +840,23 @@ label:
 					i *= 10;
 					i += *buf - '0';
 					buf++;
-				} else
+				}
+				else if (len == 2) {
+					/* for hh:mm */
+					if (*buf == ':') {
+						len += 1;
+						buf++;
+						/* stop at a double colon "hh::..." */
+						if (*buf == ':')
+							break;
+					}
+					/* for hh alone */
+					else {
+						i *= 100;
+						break;
+					}
+				}
+				else
 					return 0;
 			}
 
