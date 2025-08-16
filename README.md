@@ -105,7 +105,7 @@ methods.
 
 ## Local Locales
 
-Both wdayname (day) and monname (month) allow passing in a list to use
+Both `wdayname` (day) and `monname` (month) allow passing in a list to use
 to index the name of the days against. This can be useful if you need
 to implement some form of localisation without actually installing or
 using locales. Note that this is a global override and will affect
@@ -185,12 +185,13 @@ Date comparisons are also possible, using the full suite of "<", ">",
 
 ## Date Parsing
 
-Time::Piece has a built-in strptime() function (from FreeBSD), allowing
-you incredibly flexible date parsing routines. For example:
+Time::Piece provides flexible date parsing via the built-in strptime() function (from FreeBSD).
+
+### Basic Usage
 
     my $t = Time::Piece->strptime("Sunday 3rd Nov, 1943",
                                   "%A %drd %b, %Y");
-    
+
     print $t->strftime("%a, %d %b %Y");
 
 Outputs:
@@ -199,8 +200,72 @@ Outputs:
 
 (see, it's even smart enough to fix my obvious date bug)
 
-For more information see "man strptime", which should be on all unix
-systems.
+### Default Values for Partial Dates
+
+When parsing incomplete date strings, you can provide defaults for missing components:
+
+#### Supported Default Types
+
+**1. Array Reference** - Standard time components (sec, min, hour, mday, mon, year, wday, yday) (see `perldoc -f localtime`):
+
+    my @defaults = localtime();
+    my $t = Time::Piece->strptime("15 Mar", "%d %b",
+                                  { defaults => \@defaults });
+
+**2. Hash Reference** - Specify only needed components:
+
+    my $t = Time::Piece->strptime("15 Mar", "%d %b",
+                                  { defaults => {
+                                      year => 2023,  # Years >= 1000: actual year
+                                      hour => 14,    # Years < 1000: offset from 1900
+                                      min  => 30
+                                  } });
+
+Valid keys: `sec`, `min`, `hour`, `mday`, `mon`, `year`, `wday`, `yday`, `isdst`
+
+**Note:** `year` in this context doesn't have to be an offset from 1900
+
+**3. Time::Piece Object** - Copies all components including `c_islocal`:
+
+    my $base = localtime();
+
+    my $t1 = Time::Piece->strptime("15 Mar", "%d %b",
+                                   { defaults => $base });
+
+    # Shorthand (equivalent)
+    my $t2 = Time::Piece->strptime("15 Mar", "%d %b", $base);
+
+#### Format String Defaults
+
+When omitted, format defaults to `"%a, %d %b %Y %H:%M:%S %Z"`:
+
+    # These are equivalent:
+    my $t1 = Time::Piece->strptime($string);
+    my $t2 = Time::Piece->strptime($string, "%a, %d %b %Y %H:%M:%S %Z");
+
+### Timezone Behavior
+
+The returned object's timezone (`c_islocal`) depends on the calling context:
+
+**Default: GMT/UTC** (c\_islocal = 0)
+
+    Time::Piece->strptime($string, $format)  # Class method returns GMT
+
+**Local Time** (c\_islocal = 1) via:
+
+    # Instance method on localtime object
+    localtime()->strptime($string, $format)
+
+    # Explicit islocal option
+    Time::Piece->strptime($string, $format, { islocal => 1 })
+
+    # Inherited from Time::Piece defaults
+    my $tp_obj = localtime();
+    Time::Piece->strptime($string, $format, $tp_obj)
+
+**Note:** Parsed values always override defaults. Only missing components use default values.
+
+For more information see "man strptime" on unix systems.
 
 Alternatively look here: [http://www.unix.com/man-page/FreeBSD/3/strftime/](http://www.unix.com/man-page/FreeBSD/3/strftime/)
 
@@ -230,22 +295,6 @@ While:
 Returns
 
     ( 'So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa' )
-
-## YYYY-MM-DDThh:mm:ss
-
-The ISO 8601 standard defines the date format to be YYYY-MM-DD, and
-the time format to be hh:mm:ss (24 hour clock), and if combined, they
-should be concatenated with date first and with a capital 'T' in front
-of the time.
-
-## Week Number
-
-The _week number_ may be an unknown concept to some readers.  The ISO
-8601 standard defines that weeks begin on a Monday and week 1 of the
-year is the week that includes both January 4th and the first Thursday
-of the year.  In other words, if the first Monday of January is the
-2nd, 3rd, or 4th, the preceding days of the January are part of the
-last week of the preceding year.  Week numbers range from 1 to 53.
 
 ## Global Overriding
 
