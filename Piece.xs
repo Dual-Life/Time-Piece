@@ -1016,14 +1016,17 @@ _tzset()
     return; /* skip XSUBPP's PUTBACK */
 
 void
-_strptime ( string, format, got_GMT, SV* localization )
+_strptime ( string, format, got_GMT, localization, defaults_ref )
 	char * string
 	char * format
 	int    got_GMT
+	SV   * localization
+	SV   * defaults_ref
   PREINIT:
        struct tm mytm;
        char * remainder;
        HV   * locales;
+       AV   * defaults_av;
   PPCODE:
        memset(&mytm, 0, sizeof(mytm));
 
@@ -1042,6 +1045,31 @@ _strptime ( string, format, got_GMT, SV* localization )
 
        /* populate our locale data struct (used for %[AaBbPp] flags) */
        _populate_C_time_locale(aTHX_ locales );
+
+       /* Check if defaults array was passed and apply them now */
+       if (SvOK(defaults_ref) && SvROK(defaults_ref) && SvTYPE(SvRV(defaults_ref)) == SVt_PVAV) {
+           defaults_av = (AV*)SvRV(defaults_ref);
+           if (av_len(defaults_av)+1 >= 8) {
+
+               SV** elem;
+               elem = av_fetch(defaults_av, 0, 0);
+               if (elem && SvOK(*elem)) mytm.tm_sec = SvIV(*elem);
+               elem = av_fetch(defaults_av, 1, 0);
+               if (elem && SvOK(*elem)) mytm.tm_min = SvIV(*elem);
+               elem = av_fetch(defaults_av, 2, 0);
+               if (elem && SvOK(*elem)) mytm.tm_hour = SvIV(*elem);
+               elem = av_fetch(defaults_av, 3, 0);
+               if (elem && SvOK(*elem)) mytm.tm_mday = SvIV(*elem);
+               elem = av_fetch(defaults_av, 4, 0);
+               if (elem && SvOK(*elem)) mytm.tm_mon = SvIV(*elem);
+               elem = av_fetch(defaults_av, 5, 0);
+               if (elem && SvOK(*elem)) mytm.tm_year = SvIV(*elem);
+               elem = av_fetch(defaults_av, 6, 0);
+               if (elem && SvOK(*elem)) mytm.tm_wday = SvIV(*elem);
+               elem = av_fetch(defaults_av, 7, 0);
+               if (elem && SvOK(*elem)) mytm.tm_yday = SvIV(*elem);
+           }
+       }
 
        remainder = (char *)_strptime(aTHX_ string, format, &mytm, &got_GMT);
        if (remainder == NULL) {

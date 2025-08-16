@@ -16,8 +16,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest, windows-2019]
-        perl: ["5.8", "latest"]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        perl: ["5.8", "5.10", "5.12", "5.14", "5.20", "latest"]
 
     steps:
     - uses: actions/checkout@v4
@@ -33,7 +33,7 @@ jobs:
     - name: Install dependencies
       run: |
         cpanm --installdeps --notest .
-        
+
     - name: Build and test
       run: |
         cpanm --test-only -v .

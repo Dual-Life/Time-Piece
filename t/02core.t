@@ -1,4 +1,4 @@
-use Test::More tests => 102;
+use Test::More tests => 103;
 
 my $is_qnx = ($^O eq 'qnx');
 my $is_vos = ($^O eq 'vos');
@@ -207,6 +207,8 @@ cmp_ok(Time::Piece->strptime("2002/07/10", '%Y/%m/%d')->wday,  '==', 4);
 cmp_ok(Time::Piece->strptime("2002/12/31", '%Y/%m/%d')->yday,  '==', 364);
 cmp_ok(Time::Piece->strptime("2002/07/10", '%Y/%m/%d')->isdst, '==', 0);
 cmp_ok(Time::Piece->strptime("2002/07/10", '%Y/%m/%d')->day_of_week, '==', 3);
+# Test forcing islocal
+cmp_ok(Time::Piece->strptime("2002/07/10", '%Y/%m/%d', {islocal => 1})->[-1], '==', 1);
 
 is(
   Time::Piece->strptime('12212', "%y%j")->ymd(),
