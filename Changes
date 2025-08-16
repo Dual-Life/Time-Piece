@@ -1,8 +1,10 @@
 Revision history for Time-Piece
 
-1.3x    2025-0x-0x
+1.37    2025-08-16
+        - Allow custom default values from strptime (GH48,49)
+        - Allow islocal return from Time::Piece->strptime (GH44)
         - Windows support for %k, %l, %P
-        - Set c_isdst after strptime
+        - Set c_isdst after strptime (GH9)
 
 1.36    2025-04-06
         - Parsing speed up for strftime and strptime
