@@ -1,6 +1,7 @@
 #!/usr/bin/perl -w
 
-use Test::More tests => 128;
+use Test::More tests => 129;
+my $is_linux = ($^O =~ /linux/);
 
 BEGIN { use_ok('Time::Piece'); }
 
@@ -297,24 +298,6 @@ my @known_localtime = localtime(1753440879);
     is( $tp->sec,  $tp_defaults->sec,  "Shorthand: Second taken from object" );
 }
 
-# Test shorthand syntax - format defaults to $DATE_FORMAT
-{
-    my $tp_defaults = localtime(1753440879);
-
-    # Using default format "%a, %d %b %Y %H:%M:%S %Z"
-    my $input_string = $tp_defaults->strftime();
-
-    # Replace specific parts to test parsing
-    $input_string =~ s/Jul/Mar/;
-    $input_string =~ s/25/15/;
-
-    my $tp = Time::Piece->strptime( $input_string, $tp_defaults );
-
-    is( $tp->mday, 15,   "Shorthand no format: Day is correctly parsed" );
-    is( $tp->mon,  3,    "Shorthand no format: Month is correctly parsed" );
-    is( $tp->year, 2025, "Shorthand no format: Year taken from defaults" );
-}
-
 # Test shorthand syntax - c_islocal copying
 {
     my $tp1 =
@@ -462,3 +445,31 @@ my @known_localtime = localtime(1753440879);
         "No format, error: Correct error message"
     );
 }
+
+# Test shorthand syntax - format defaults to $DATE_FORMAT
+SKIP: {
+    skip "Default format tests for Linux only.", 4
+      unless $is_linux
+      && ( $ENV{AUTOMATED_TESTING}
+        || $ENV{NONINTERACTIVE_TESTING}
+        || $ENV{PERL_BATCH} );
+
+    Time::Piece->use_locale();
+
+    my $tp_defaults = localtime(1753440879);
+
+    # Using default format "%a, %d %b %Y %H:%M:%S %Z"
+    my $input_string = $tp_defaults->strftime();
+
+    # Replace specific parts to test parsing
+    $input_string =~ s/25/15/;
+
+    my $tp = Time::Piece->strptime( $input_string, $tp_defaults );
+
+    is( $tp->mday, 15,   "Shorthand no format: Day is correctly parsed" );
+    is( $tp->mon,  7,    "Shorthand no format: Month is correctly parsed" );
+    is( $tp->year, 2025, "Shorthand no format: Year taken from defaults" );
+    is( $tp->[Time::Piece::c_islocal],
+        1, "Shorthand no format, object copied local" );
+}
+

@@ -3,7 +3,7 @@ use Test::More;
 # Skip if doing a regular install
 # Avoids mystery DST bugs [rt 128240], [GH40]
 plan skip_all => "DST tests not required for installation"
-  unless ( $ENV{AUTOMATED_TESTING} );
+  unless ( $ENV{AUTOMATED_TESTING} || $ENV{NONINTERACTIVE_TESTING} || $ENV{PERL_BATCH} );
 
 my $is_win32 = ($^O =~ /Win32/);
 my $is_qnx = ($^O eq 'qnx');
@@ -118,6 +118,8 @@ ok(not $t->is_leap_year); # should test more with different dates
 
 cmp_ok($t->month_last_day, '==', 31); # test more
 
+cmp_ok(gmtime(1755648001)->strftime("%I %k %H %l"), 'eq', "12  0 00 12"); # 8/20/25 0:0:1 These should be 12 or 0
+
 
 SKIP: {
 	skip "Extra tests for Linux, BSD only.", 9 unless $is_linux or $is_mac or $is_bsd;
@@ -138,4 +140,4 @@ SKIP: {
     is    ($lt->strftime("%s"), 1357733231, 'Epoch output is the same with EST');
 }
 
-done_testing(59);
+done_testing(60);

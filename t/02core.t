@@ -49,7 +49,7 @@ if (defined &Win32::GetCurrentProcessId
 }
 SKIP: {
     skip "can't register TZ changes in a pseudo-fork", 2 if $is_pseudo_fork;
-    local $ENV{TZ} = "EST5EDT";
+    local $ENV{TZ} = "EST5EDT4,M3.2.0/2,M11.1.0/2";
     Time::Piece::_tzset();  # register the environment change
     my $lt = localtime(1735880528); #2025-01-03T05:02:08
     cmp_ok(scalar($lt->tzoffset), 'eq', '-18000');

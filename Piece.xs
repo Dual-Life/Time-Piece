@@ -437,7 +437,12 @@ label:
 			break;
 
 		case 'r':
-			buf = _strptime(aTHX_ buf, "%I:%M:%S %p", tm, got_GMT);
+			if (Locale->AM && strlen(Locale->AM) > 0 &&
+			    Locale->PM && strlen(Locale->PM) > 0) {
+				buf = _strptime(aTHX_ buf, "%I:%M:%S %p", tm, got_GMT);
+			} else {
+				buf = _strptime(aTHX_ buf, "%H:%M:%S", tm, got_GMT);
+			}
 			if (buf == 0)
 				return 0;
 			break;
