@@ -1,5 +1,8 @@
 Revision history for Time-Piece
 
+1.3701  2025-08-25
+        - Test fixes on Alpine and locales without AM/PM (GH76)
+
 1.37    2025-08-16
         - Allow custom default values from strptime (GH48,49)
         - Allow islocal return from Time::Piece->strptime (GH44)
