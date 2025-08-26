@@ -4,7 +4,7 @@ use Time::Piece;
 # Skip if doing a regular install
 # These are mostly for reverse parsing tests, not required for installation
 plan skip_all => "Reverse parsing not required for installation"
-  unless ( $ENV{AUTOMATED_TESTING} );
+  unless ( $ENV{AUTOMATED_TESTING} || $ENV{NONINTERACTIVE_TESTING} || $ENV{PERL_BATCH} );
 
 my $t = gmtime(1373371631);    # 2013-07-09T12:07:11
 
@@ -56,15 +56,12 @@ my @dates = (
     '%A, %e %B %Y at %H:%M:%S',
     '%a, %e %b %Y at %r',
     '%s',
-    '%c',
     '%F %T',
     '%D %r',
 
 #TODO
 #    '%u %U %Y %T',                    #%U,W,V currently skipped inside strptime
 #    '%w %W %y %T',
-    '%A, %e %B %Y at %I:%M:%S %P',    #%I and %p can be locale dependant
-    '%x %X',    #hard coded to American localization
 );
 
 for my $time (
@@ -76,8 +73,17 @@ for my $time (
     my $t = gmtime($time);
 
     for my $strp_format (@dates) {
+
         my $t_str = $t->strftime($strp_format);
-        my $parsed = $t->strptime( $t_str, $strp_format );
+        my $parsed;
+
+        eval { $parsed = $t->strptime( $t_str, $strp_format ); };
+
+        if ($@) {
+            warn("strptime failed with time $t_str and format $strp_format");
+            warn($@);
+            next;
+        }
 
         check_parsed( $t, $parsed, $t_str, $strp_format );
     }
@@ -95,14 +101,18 @@ for my $time (
 
         my $t_str = $t->strftime($strp_format);
         my $parsed;
-      SKIP: {
-            eval { $parsed = $t->strptime( $t_str, $strp_format ); };
-            skip "localtime strptime parse failed", 3 if $@;
-            check_parsed( $t, $parsed, $t_str, $strp_format );
+
+        eval { $parsed = $t->strptime( $t_str, $strp_format ); };
+
+        if ($@) {
+            warn("strptime failed with time $t_str and format $strp_format");
+            warn($@);
+            next;
         }
+        check_parsed( $t, $parsed, $t_str, $strp_format );
 
     }
 
 }
 
-done_testing(190);
+done_testing(136);

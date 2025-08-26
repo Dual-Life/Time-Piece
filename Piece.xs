@@ -359,8 +359,10 @@ _strptime(pTHX_ const char *buf, const char *fmt, struct tm *tm, int *got_GMT)
 			if (isspace((unsigned char)c))
 				while (*buf != 0 && isspace((unsigned char)*buf))
 					buf++;
-			else if (c != *buf++)
+			else if (c != *buf++) {
+				warn("Time string mismatches format string");
 				return 0;
+			}
 			continue;
 		}
 
@@ -437,7 +439,12 @@ label:
 			break;
 
 		case 'r':
-			buf = _strptime(aTHX_ buf, "%I:%M:%S %p", tm, got_GMT);
+			if (Locale->AM && strlen(Locale->AM) > 0 &&
+			    Locale->PM && strlen(Locale->PM) > 0) {
+				buf = _strptime(aTHX_ buf, "%I:%M:%S %p", tm, got_GMT);
+			} else {
+				buf = _strptime(aTHX_ buf, "%H:%M:%S", tm, got_GMT);
+			}
 			if (buf == 0)
 				return 0;
 			break;
@@ -539,8 +546,10 @@ label:
 			if (c == 'H' || c == 'k') {
 				if (i > 23)
 					return 0;
-			} else if (i > 12)
+			} else if (i > 12) {
+					warn("Hour cannot be >12 with %%I or %%l");
 				return 0;
+			}
 
 			tm->tm_hour = i;
 
@@ -558,8 +567,11 @@ label:
             len = strlen(Locale->am);
 			if (strncasecmp(buf, Locale->am, len) == 0 ||
 					strncasecmp(buf, Locale->AM, len) == 0) {
-				if (tm->tm_hour > 12)
+				if (tm->tm_hour > 12) {
+					warn("Hour cannot be >12 with %%p");
 					return 0;
+				}
+
 				if (tm->tm_hour == 12)
 					tm->tm_hour = 0;
 				buf += len;
@@ -569,14 +581,17 @@ label:
 			len = strlen(Locale->pm);
 			if (strncasecmp(buf, Locale->pm, len) == 0 ||
 					strncasecmp(buf, Locale->PM, len) == 0) {
-				if (tm->tm_hour > 12)
+				if (tm->tm_hour > 12) {
+					warn("Hour cannot be >12 with %%p");
 					return 0;
+				}
 				if (tm->tm_hour != 12)
 					tm->tm_hour += 12;
 				buf += len;
 				break;
 			}
 
+			warn("Failed parsing %%p");
 			return 0;
 
 		case 'A':
