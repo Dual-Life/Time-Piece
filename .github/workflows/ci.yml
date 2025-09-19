@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest, windows-2022, windows-latest]
         perl: ["5.8", "5.10", "5.12", "5.14", "5.20", "latest"]
 
     steps:
@@ -37,6 +37,31 @@ jobs:
     - name: Build and test
       run: |
         cpanm --test-only -v .
+
+  test-alpine:
+    name: Test on Alpine Linux
+    runs-on: ubuntu-latest
+    container:
+      image: alpine:latest
+    env:
+      AUTOMATED_TESTING: 1
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Perl and basic tools
+      run: |
+        apk update
+        apk add --no-cache perl perl-dev make gcc musl-dev
+
+
+    - name: Show Perl version
+      run: perl -V
+
+    - name: Build and test
+      run: |
+        perl Makefile.PL
+        make test
 
   test-bsd:
     name: Test on BSD
