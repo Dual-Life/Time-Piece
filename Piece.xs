@@ -19,6 +19,15 @@
 #define    WEEKDAY_BIAS    6    /* (1+6)%7 makes Sunday 0 again */
 #define    TP_BUF_SIZE     160
 
+#  ifndef MIN
+#    define MIN(a,b) ((a) < (b) ? (a) : (b))
+#  endif
+
+
+#  ifdef WIN32
+#    define timegm _mkgmtime
+#  endif
+
 #ifdef WIN32
 
 /*
@@ -780,10 +789,8 @@ label:
 			buf = cp;
 			Zero(&mytm, 1, struct tm);
 
-            if(*got_GMT == 1)
-                mytm = *localtime(&t);
-            else
-                mytm = *gmtime(&t);
+			mytm = *gmtime(&t);
+			*got_GMT = 1;
 
             tm->tm_sec    = mytm.tm_sec;
             tm->tm_min    = mytm.tm_min;
@@ -833,19 +840,18 @@ label:
 			for (cp = buf; *cp && isupper((unsigned char)*cp); ++cp)
                             {/*empty*/}
 			if (cp - buf) {
-				zonestr = (char *)malloc((size_t) (cp - buf + 1));
+				zonestr = (char *)safemalloc((size_t) (cp - buf + 1));
 				if (!zonestr) {
+					Safefree(zonestr);
 				    errno = ENOMEM;
-				    return 0;
+				    return NULL;
 				}
-				strncpy(zonestr, buf,(size_t) (cp - buf));
-				zonestr[cp - buf] = '\0';
-				my_tzset(aTHX);
-				if (0 == strcmp(zonestr, "GMT")) {
+				my_strlcpy(zonestr, buf,(size_t) (cp - buf)+1);
+				/* my_tzset(aTHX); */
+				if (strEQ(zonestr, "GMT") || strEQ(zonestr, "UTC")) {
 				    *got_GMT = 1;
 				}
-				free(zonestr);
-				if (!*got_GMT) return 0;
+				Safefree(zonestr);
 				buf += cp - buf;
 			}
 			}
@@ -869,9 +875,16 @@ label:
 					i *= 10;
 					i += *buf - '0';
 					buf++;
+				} else if (len == 2) {
+					i *= 100;
+					break;
 				} else
 					return NULL;
 			}
+
+			/* Valid if between UTC+14 and UTC-12 and minutes <= 60 */
+			if (i > 1400 || (sign == -1 && i > 1200) || (i % 100) >= 60)
+				return NULL;
 
 			tm->tm_hour -= sign * (i / 100);
 			tm->tm_min  -= sign * (i % 100);
@@ -1017,14 +1030,15 @@ _tzset()
     return; /* skip XSUBPP's PUTBACK */
 
 void
-_strptime ( string, format, got_GMT, localization, defaults_ref )
+_strptime ( string, format, islocal, localization, defaults_ref )
 	char * string
 	char * format
-	int    got_GMT
+	int    islocal
 	SV   * localization
 	SV   * defaults_ref
   PREINIT:
        struct tm mytm;
+	   int    got_GMT = 0;
        char * remainder;
        HV   * locales;
        AV   * defaults_av;
@@ -1076,6 +1090,15 @@ _strptime ( string, format, got_GMT, localization, defaults_ref )
        if (*remainder != '\0') {
            warn("Garbage at end of string in strptime: %s", remainder);
            warn("Perhaps a format flag did not match the actual input?");
+       }
+
+       /* convert if we have a tm in GMT but were called from a localized object */
+       if (got_GMT == 1 && islocal == 1) {
+           time_t t;
+#  ifdef HAS_TIMEGM
+           t = timegm(&mytm);
+           mytm = *localtime(&t);
+#  endif
        }
 
        return_11part_tm(aTHX_ SP, &mytm);
