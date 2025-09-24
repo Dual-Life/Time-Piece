@@ -310,9 +310,6 @@ my_mini_mktime(struct tm *ptm)
  * official policies, either expressed or implied, of Powerdog Industries.
  */
 
-#include <time.h>
-#include <ctype.h>
-#include <string.h>
 static char * _strptime(pTHX_ const char *, const char *, struct tm *,
 			int *got_GMT, HV *locales);
 
@@ -323,7 +320,7 @@ _strptime(pTHX_ const char *buf, const char *fmt, struct tm *tm, int *got_GMT, H
 	char c;
 	const char *ptr;
 	int i;
-	size_t len;
+	size_t len = 0;
 	int Ealternative, Oalternative;
 
     /* There seems to be a slightly improved version at
@@ -343,7 +340,7 @@ _strptime(pTHX_ const char *buf, const char *fmt, struct tm *tm, int *got_GMT, H
 					buf++;
 			else if (c != *buf++) {
 				warn("Time string mismatches format string");
-				return 0;
+				return NULL;
 			}
 			continue;
 		}
@@ -356,18 +353,18 @@ label:
 		case 0:
 		case '%':
 			if (*buf++ != '%')
-				return 0;
+				return NULL;
 			break;
 
 		case '+':
-			buf = _strptime(aTHX_ buf, "%c", tm, got_GMT);
+			buf = _strptime(aTHX_ buf, "%c", tm, got_GMT, locales);
 			if (buf == 0)
-				return 0;
+				return NULL;
 			break;
 
 		case 'C':
 			if (!isdigit((unsigned char)*buf))
-				return 0;
+				return NULL;
 
 			/* XXX This will break for 3-digit centuries. */
                         len = 2;
@@ -377,7 +374,7 @@ label:
 				len--;
 			}
 			if (i < 19)
-				return 0;
+				return NULL;
 
 			tm->tm_year = i * 100 - 1900;
 			break;
@@ -385,15 +382,15 @@ label:
 		case 'c':
 			/* NOTE: c_fmt is intentionally ignored */
 
-			buf = _strptime(aTHX_ buf, "%a %d %b %Y %I:%M:%S %p %Z", tm, got_GMT);
+			buf = _strptime(aTHX_ buf, "%a %d %b %Y %I:%M:%S %p %Z", tm, got_GMT, locales);
 			if (buf == 0)
-				return 0;
+				return NULL;
 			break;
 
 		case 'D':
-			buf = _strptime(aTHX_ buf, "%m/%d/%y", tm, got_GMT);
+			buf = _strptime(aTHX_ buf, "%m/%d/%y", tm, got_GMT, locales);
 			if (buf == 0)
-				return 0;
+				return NULL;
 			break;
 
 		case 'E':
@@ -409,32 +406,34 @@ label:
 			goto label;
 
 		case 'F':
-			buf = _strptime(aTHX_ buf, "%Y-%m-%d", tm, got_GMT);
+			buf = _strptime(aTHX_ buf, "%Y-%m-%d", tm, got_GMT, locales);
 			if (buf == 0)
-				return 0;
+				return NULL;
 			break;
 
 		case 'R':
-			buf = _strptime(aTHX_ buf, "%H:%M", tm, got_GMT);
+			buf = _strptime(aTHX_ buf, "%H:%M", tm, got_GMT, locales);
 			if (buf == 0)
-				return 0;
+				return NULL;
 			break;
 
 		case 'r':
-			if (Locale->AM && strlen(Locale->AM) > 0 &&
-			    Locale->PM && strlen(Locale->PM) > 0) {
-				buf = _strptime(aTHX_ buf, "%I:%M:%S %p", tm, got_GMT);
-			} else {
-				buf = _strptime(aTHX_ buf, "%H:%M:%S", tm, got_GMT);
+			{
+				SV** am_sv = hv_fetchs(locales, "AM", 0);
+				if (am_sv && SvPOK(*am_sv) && SvCUR(*am_sv) > 0) {
+					buf = _strptime(aTHX_ buf, "%I:%M:%S %p", tm, got_GMT, locales);
+				} else {
+					buf = _strptime(aTHX_ buf, "%H:%M:%S", tm, got_GMT, locales);
+				}
 			}
 			if (buf == 0)
-				return 0;
+				return NULL;
 			break;
 
 		case 'n': /* whitespace */
 		case 't':
 			if (!isspace((unsigned char)*buf))
-				return 0;
+				return NULL;
 			while (isspace((unsigned char)*buf))
 				buf++;
 			break;
@@ -442,24 +441,24 @@ label:
 		case 'T':
 			buf = _strptime(aTHX_ buf, "%H:%M:%S", tm, got_GMT, locales);
 			if (buf == 0)
-				return 0;
+				return NULL;
 			break;
 
 		case 'X':
 			buf = _strptime(aTHX_ buf, "%I:%M:%S %p", tm, got_GMT, locales);
 			if (buf == 0)
-				return 0;
+				return NULL;
 			break;
 
 		case 'x':
 			buf = _strptime(aTHX_ buf, "%a %d %b %Y", tm, got_GMT, locales);
 			if (buf == 0)
-				return 0;
+				return NULL;
 			break;
 
 		case 'j':
 			if (!isdigit((unsigned char)*buf))
-				return 0;
+				return NULL;
 
 			len = 3;
 			for (i = 0; len && *buf != 0 && isdigit((unsigned char)*buf); buf++) {
@@ -468,7 +467,7 @@ label:
 				len--;
 			}
 			if (i < 1 || i > 366)
-				return 0;
+				return NULL;
 
 			tm->tm_yday = i - 1;
 			tm->tm_mday = 0;
@@ -480,7 +479,7 @@ label:
 				break;
 
 			if (!isdigit((unsigned char)*buf))
-				return 0;
+				return NULL;
 
 			len = 2;
 			for (i = 0; len && *buf != 0 && isdigit((unsigned char)*buf); buf++) {
@@ -491,11 +490,11 @@ label:
 
 			if (c == 'M') {
 				if (i > 59)
-					return 0;
+					return NULL;
 				tm->tm_min = i;
 			} else {
 				if (i > 60)
-					return 0;
+					return NULL;
 				tm->tm_sec = i;
 			}
 
@@ -517,7 +516,7 @@ label:
 			 * digits if used incorrectly.
 			 */
             if (!isdigit((unsigned char)*buf))
-				return 0;
+				return NULL;
 
 			len = 2;
 			for (i = 0; len && *buf != 0 && isdigit((unsigned char)*buf); buf++) {
@@ -527,10 +526,10 @@ label:
 			}
 			if (c == 'H' || c == 'k') {
 				if (i > 23)
-					return 0;
+					return NULL;
 			} else if (i > 12) {
 					warn("Hour cannot be >12 with %%I or %%l");
-				return 0;
+				return NULL;
 			}
 
 			tm->tm_hour = i;
@@ -588,7 +587,7 @@ label:
 			}
 
 			warn("Failed parsing %%p");
-			return 0;
+			return NULL;
 
 		case 'A':
 		case 'a':
@@ -638,7 +637,7 @@ label:
 			 * range for now.
 			 */
             if (!isdigit((unsigned char)*buf))
-				return 0;
+				return NULL;
 
 			len = 2;
 			for (i = 0; len && *buf != 0 && isdigit((unsigned char)*buf); buf++) {
@@ -647,7 +646,7 @@ label:
 				len--;
 			}
 			if (i > 53)
-				return 0;
+				return NULL;
 
 			if (*buf != 0 && isspace((unsigned char)*buf))
 				while (*ptr != 0 && !isspace((unsigned char)*ptr))
@@ -657,11 +656,11 @@ label:
 		case 'u':
 		case 'w':
 			if (!isdigit((unsigned char)*buf))
-				return 0;
+				return NULL;
 
 			i = *buf - '0';
 			if (i > 6 + (c == 'u'))
-				return 0;
+				return NULL;
 			if (i == 7)
 				i = 0;
 
@@ -684,7 +683,7 @@ label:
 			 * digits if used incorrectly.
 			 */
                         if (!isdigit((unsigned char)*buf))
-				return 0;
+				return NULL;
 
 			len = 2;
 			for (i = 0; len && *buf != 0 && isdigit((unsigned char)*buf); buf++) {
@@ -693,7 +692,7 @@ label:
 				len--;
 			}
 			if (i > 31)
-				return 0;
+				return NULL;
 
 			tm->tm_mday = i;
 
@@ -744,7 +743,7 @@ label:
 
 		case 'm':
 			if (!isdigit((unsigned char)*buf))
-				return 0;
+				return NULL;
 
 			len = 2;
 			for (i = 0; len && *buf != 0 && isdigit((unsigned char)*buf); buf++) {
@@ -753,7 +752,7 @@ label:
 				len--;
 			}
 			if (i < 1 || i > 12)
-				return 0;
+				return NULL;
 
 			tm->tm_mon = i - 1;
 
@@ -772,14 +771,14 @@ label:
 
 			sverrno = errno;
 			errno = 0;
-			n = strtol(buf, &cp, 10);
+			n = Strtol(buf, &cp, 10);
 			if (errno == ERANGE || (long)(t = n) != n) {
 				errno = sverrno;
-				return 0;
+				return NULL;
 			}
 			errno = sverrno;
 			buf = cp;
-            memset(&mytm, 0, sizeof(mytm));
+			Zero(&mytm, 1, struct tm);
 
             if(*got_GMT == 1)
                 mytm = *localtime(&t);
@@ -804,7 +803,7 @@ label:
 				break;
 
 			if (!isdigit((unsigned char)*buf))
-				return 0;
+				return NULL;
 
 			len = (c == 'Y') ? 4 : 2;
 			for (i = 0; len && *buf != 0 && isdigit((unsigned char)*buf); buf++) {
@@ -817,7 +816,7 @@ label:
 			if (c == 'y' && i < 69)
 				i += 100;
 			if (i < 0)
-				return 0;
+				return NULL;
 
 			tm->tm_year = i;
 
@@ -860,7 +859,7 @@ label:
 				if (*buf == '-')
 					sign = -1;
 				else
-					return 0;
+					return NULL;
 			}
 
 			buf++;
@@ -871,7 +870,7 @@ label:
 					i += *buf - '0';
 					buf++;
 				} else
-					return 0;
+					return NULL;
 			}
 
 			tm->tm_hour -= sign * (i / 100);
@@ -1030,7 +1029,7 @@ _strptime ( string, format, got_GMT, localization, defaults_ref )
        HV   * locales;
        AV   * defaults_av;
   PPCODE:
-       memset(&mytm, 0, sizeof(mytm));
+       Zero(&mytm, 1, struct tm);
 
        /* sensible defaults. */
        mytm.tm_mday = 1;
@@ -1052,21 +1051,21 @@ _strptime ( string, format, got_GMT, localization, defaults_ref )
 
                SV** elem;
                elem = av_fetch(defaults_av, 0, 0);
-               if (elem && SvOK(*elem)) mytm.tm_sec = SvIV(*elem);
+               if (elem && SvOK(*elem)) mytm.tm_sec = (int)SvIV(*elem);
                elem = av_fetch(defaults_av, 1, 0);
-               if (elem && SvOK(*elem)) mytm.tm_min = SvIV(*elem);
+               if (elem && SvOK(*elem)) mytm.tm_min = (int)SvIV(*elem);
                elem = av_fetch(defaults_av, 2, 0);
-               if (elem && SvOK(*elem)) mytm.tm_hour = SvIV(*elem);
+               if (elem && SvOK(*elem)) mytm.tm_hour = (int)SvIV(*elem);
                elem = av_fetch(defaults_av, 3, 0);
-               if (elem && SvOK(*elem)) mytm.tm_mday = SvIV(*elem);
+               if (elem && SvOK(*elem)) mytm.tm_mday = (int)SvIV(*elem);
                elem = av_fetch(defaults_av, 4, 0);
-               if (elem && SvOK(*elem)) mytm.tm_mon = SvIV(*elem);
+               if (elem && SvOK(*elem)) mytm.tm_mon = (int)SvIV(*elem);
                elem = av_fetch(defaults_av, 5, 0);
-               if (elem && SvOK(*elem)) mytm.tm_year = SvIV(*elem);
+               if (elem && SvOK(*elem)) mytm.tm_year = (int)SvIV(*elem);
                elem = av_fetch(defaults_av, 6, 0);
-               if (elem && SvOK(*elem)) mytm.tm_wday = SvIV(*elem);
+               if (elem && SvOK(*elem)) mytm.tm_wday = (int)SvIV(*elem);
                elem = av_fetch(defaults_av, 7, 0);
-               if (elem && SvOK(*elem)) mytm.tm_yday = SvIV(*elem);
+               if (elem && SvOK(*elem)) mytm.tm_yday = (int)SvIV(*elem);
            }
        }
 
