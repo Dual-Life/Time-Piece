@@ -13,7 +13,7 @@ Time::Piece - Object Oriented time objects
 # SYNOPSIS
 
     use Time::Piece;
-    
+
     my $t = localtime;
     print "Time is $t\n";
     print "Year is ", $t->year, "\n";
@@ -93,7 +93,7 @@ following methods are available on the object:
     $t->strftime(FORMAT)    # same as POSIX::strftime (without the overhead
                             # of the full POSIX extension)
     $t->strftime()          # "Tue, 29 Feb 2000 12:34:56 GMT"
-    
+
     Time::Piece->strptime(STRING, FORMAT)
                             # see strptime man page. Creates a new
                             # Time::Piece object
@@ -103,39 +103,12 @@ methods on a Time::Piece object, they act as constructors, returning a new
 Time::Piece object for the current time.  In other words: they're not useful as
 methods.
 
-## Local Locales
-
-Both `wdayname` (day) and `monname` (month) allow passing in a list to use
-to index the name of the days against. This can be useful if you need
-to implement some form of localisation without actually installing or
-using locales. Note that this is a global override and will affect
-all Time::Piece instances.
-
-    my @days = qw( Dimanche Lundi Merdi Mercredi Jeudi Vendredi Samedi );
-
-    my $french_day = localtime->day(@days);
-
-These settings can be overridden globally too:
-
-    Time::Piece::day_list(@days);
-
-Or for months:
-
-    Time::Piece::mon_list(@months);
-
-And locally for months:
-
-    print localtime->month(@months);
-
-Or to populate with your current system locale call:
-    Time::Piece->use\_locale();
-
 ## Date Calculations
 
 It's possible to use simple addition and subtraction of objects:
 
     use Time::Seconds;
-    
+
     my $seconds = $t1 - $t2;
     $t1 += ONE_DAY; # add 1 day (constant from Time::Seconds)
 
@@ -185,7 +158,12 @@ Date comparisons are also possible, using the full suite of "<", ">",
 
 ## Date Parsing
 
-Time::Piece provides flexible date parsing via the built-in strptime() function (from FreeBSD).
+Time::Piece provides flexible date parsing via the built-in `strptime()`
+function (from FreeBSD).
+
+For more information on acceptible formats and flags for `strptime` see
+"man strptime" on unix systems. Alternatively look here:
+[http://www.unix.com/man-page/FreeBSD/3/strftime/](http://www.unix.com/man-page/FreeBSD/3/strftime/)
 
 ### Basic Usage
 
@@ -202,7 +180,8 @@ Outputs:
 
 ### Default Values for Partial Dates
 
-When parsing incomplete date strings, you can provide defaults for missing components:
+When parsing incomplete date strings, you can provide defaults for missing
+components in a few ways:
 
 #### Supported Default Types
 
@@ -265,19 +244,71 @@ The returned object's timezone (`c_islocal`) depends on the calling context:
 
 **Note:** Parsed values always override defaults. Only missing components use default values.
 
-For more information see "man strptime" on unix systems.
+### Timezone Parsing with %z and %Z
 
-Alternatively look here: [http://www.unix.com/man-page/FreeBSD/3/strftime/](http://www.unix.com/man-page/FreeBSD/3/strftime/)
+Added in version 1.38. Prior to that, these flags were mostly ignored.
+Consider the current implementation somewhat "alpha" and in need of feedback.
+
+Time::Piece's `strptime()` function has some limited support for parsing timezone
+information through two format specifiers:
+
+#### %z - Numeric Timezone Offset
+
+The `%z` specifier parses numeric timezone offsets in the format `+HHMM` or
+`-HHMM`:
+
+    my $t = Time::Piece->strptime("2024-01-15 15:30:00 +0500",
+                                   "%Y-%m-%d %H:%M:%S %z");
+    print $t->hour;  # prints 10 (15:30 - 5:00 = 10:30 UTC)
+
+**Important behaviors:**
+
+- The offset is applied to convert the time to UTC. The example above
+with `+0500` means "5 hours ahead of UTC", so 15:30+05:00 becomes 10:30 UTC.
+- For a localized object, `islocal == 1` the returned time will be 
+converted to the current local timezone.
+- Valid offset range is `-1200` to `+1400` with minutes less than 60.
+
+#### %Z - Timezone Name
+
+The `%Z` specifier currently only parses the GMT/UTC timezone names
+(case-sensitive). Other names are parsed but ignored. Similar to `%z`, for a
+localized object, the resultant time will be in the current system timezone.
+
+    my $t1 = Time::Piece->strptime("2024-01-15 10:30:00 GMT",
+                                    "%Y-%m-%d %H:%M:%S %Z");
+    print $t1->hour;  # prints 10 (no adjustment for GMT)
+
+    my $t2 = Time::Piece->strptime("2024-01-15 10:30:00 PST",
+                                    "%Y-%m-%d %H:%M:%S %Z");
+    print $t2->hour;  # prints 10 (PST ignored)
+
+#### Controlling GMT vs Local Time
+
+By default, times parsed with `%z` or `%Z` (when GMT/UTC) create GMT objects.
+To convert to local time, use the `islocal` option:
+
+    # Parse as GMT, then convert to local timezone
+    my $t = Time::Piece->strptime("2024-01-15 15:30:00 +0500",
+                                   "%Y-%m-%d %H:%M:%S %z",
+                                   { islocal => 1 });
+    # Time is first adjusted to 10:30 GMT, then converted to local
+
+    # This also works with GMT/UTC names
+    my $t = Time::Piece->strptime("2024-01-15 12:00:00 GMT",
+                                   "%Y-%m-%d %H:%M:%S %Z",
+                                   { islocal => 1 });
+    # 12:00 GMT converted to your local timezone
 
 ### CAVEAT %A, %a, %B, %b, and friends
 
-Time::Piece::strptime by default can only parse American English date names.
-Meanwhile, Time::Piece->strftime() will return date names that use the current
-configured system locale. This means dates returned by strftime might not be
-able to be parsed by strptime. This is the default behavior and can be
-overridden by calling Time::Piece->use\_locale(). This builds a list of the
-current locale's day and month names which strptime will use to parse with.
-Note this is a global override and will affect all Time::Piece instances.
+`Time::Piece::strptime` by default can only parse American English date names.
+Meanwhile, `Time::Piece->strftime()` will return date names that use the current
+configured system locale. This means dates returned by `strftime` might not be
+able to be parsed by `strptime`. This is the default behavior and can be
+overridden by calling `Time::Piece->use_locale()`. This builds a list of the
+current locale's day and month names which `strptime` will use to parse with.
+Note this is a global override and will affect all `Time::Piece` instances.
 
 For instance with a German locale:
 
@@ -296,6 +327,32 @@ Returns
 
     ( 'So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa' )
 
+## Local Locales
+
+Both `wdayname` (day) and `monname` (month) allow passing in a list to use
+to index the name of the days against. This can be useful if you need
+to implement some form of localisation without actually installing or
+using locales.
+
+    my @days = qw( Dimanche Lundi Merdi Mercredi Jeudi Vendredi Samedi );
+
+    my $french_day = localtime->day(@days);
+
+And locally for months:
+
+    print localtime->month(@months);
+
+These settings can be overridden globally too:
+
+    Time::Piece::day_list(@days);
+
+Or for months:
+
+    Time::Piece::mon_list(@months);
+
+Or to automatically (globally!) populate with your current system's locale call:
+`Time::Piece->use_locale();`
+
 ## Global Overriding
 
 Finally, it's possible to override localtime and gmtime everywhere, by
@@ -313,10 +370,10 @@ interpreter maintains its own copy of the environment and only the main
 interpreter will update the process environment seen by strftime.
 
 Therefore, if you make changes to $ENV{TZ} from inside a thread other than
-the main thread then those changes will not be seen by strftime if you
+the main thread then those changes will not be seen by `strftime` if you
 subsequently call that with the %Z formatting code. You must change $ENV{TZ}
 in the main thread to have the desired effect in this case (and you must
-also call \_tzset() in the main thread to register the environment change).
+also call `_tzset()` in the main thread to register the environment change).
 
 Furthermore, remember that this caveat also applies to fork(), which is
 emulated by threads on Win32.
@@ -326,19 +383,10 @@ emulated by threads on Win32.
 This module internally uses the epoch seconds system that is provided via
 the perl `time()` function and supported by `gmtime()` and `localtime()`.
 
-If your perl does not support times larger than `2^31` seconds then this
-module is likely to fail at processing dates beyond the year 2038. There are
-moves afoot to fix that in perl. Alternatively use 64 bit perl. Or if none
-of those are options, use the [DateTime](https://metacpan.org/pod/DateTime) module which has support for years
-well into the future and past.
-
-Also, the internal representation of Time::Piece->strftime deviates from the
-standard POSIX implementation in that is uses the epoch (instead of separate
-year, month, day parts). This change was added in version 1.30. If you must
-have a more traditional strftime (which will normally never calculate day
-light saving times correctly), you can pass the date parts from Time::Piece
-into the strftime function provided by the POSIX module
-(see strftime in [POSIX](https://metacpan.org/pod/POSIX) ).
+If your perl does not support times larger than `2^31` seconds
+(Perl versions < 5.12) then this module is likely to fail at processing dates
+beyond the year 2038. If that is not an option, use the [DateTime](https://metacpan.org/pod/DateTime) module
+which has support for years well into the future and past.
 
 # AUTHOR
 
@@ -358,7 +406,8 @@ The excellent Calendar FAQ at [http://www.tondering.dk/claus/calendar.html](http
 
 # BUGS
 
-The test harness leaves much to be desired. Patches welcome.
+- The test harness leaves much to be desired. Patches welcome.
+- Proper UTF8 support
 
 ## Development Instructions
 
