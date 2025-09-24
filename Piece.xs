@@ -1151,7 +1151,6 @@ _get_localization()
         AV* weekdays = newAV();
         AV* mons = newAV();
         AV* months = newAV();
-        SV** tmp;
         size_t len;
         char buf[TP_BUF_SIZE];
         size_t i;
@@ -1181,26 +1180,25 @@ _get_localization()
             ++mytm.tm_mon;
         }
 
-        tmp = hv_store(locales, "wday", 4, newRV_noinc((SV *) wdays), 0);
-        tmp = hv_store(locales, "weekday", 7, newRV_noinc((SV *) weekdays), 0);
-        tmp = hv_store(locales, "mon", 3, newRV_noinc((SV *) mons), 0);
-        tmp = hv_store(locales, "month", 5, newRV_noinc((SV *) months), 0);
-        tmp = hv_store(locales, "alt_month", 9, newRV((SV *) months), 0);
+        hv_stores(locales, "wday", newRV_noinc((SV *) wdays));
+        hv_stores(locales, "weekday", newRV_noinc((SV *) weekdays));
+        hv_stores(locales, "mon", newRV_noinc((SV *) mons));
+        hv_stores(locales, "month", newRV_noinc((SV *) months));
+
 
         len = strftime(buf, TP_BUF_SIZE, "%p", &mytm);
-        tmp = hv_store(locales, "AM", 2, newSVpvn(buf,len), 0);
+        hv_stores(locales, "AM", newSVpvn(buf,len));
+#  ifndef WIN32
         len = strftime(buf, TP_BUF_SIZE, "%P", &mytm);
-        tmp = hv_store(locales, "am", 2, newSVpvn(buf,len), 0);
+        hv_stores(locales, "am", newSVpvn(buf,len));
+#  endif
         mytm.tm_hour = 18;
         len = strftime(buf, TP_BUF_SIZE, "%p", &mytm);
-        tmp = hv_store(locales, "PM", 2, newSVpvn(buf,len), 0);
+        hv_stores(locales, "PM", newSVpvn(buf,len));
+#  ifndef WIN32
         len = strftime(buf, TP_BUF_SIZE, "%P", &mytm);
-        tmp = hv_store(locales, "pm", 2, newSVpvn(buf,len), 0);
-
-        if(tmp == NULL || !SvOK( (SV *) *tmp)){
-            croak("Failed to get localization.");
-        }
-
+        hv_stores(locales, "pm", newSVpvn(buf,len));
+#  endif
         RETVAL = newRV_noinc((SV *)locales);
     OUTPUT:
         RETVAL
