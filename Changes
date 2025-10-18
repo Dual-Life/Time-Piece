@@ -1,5 +1,11 @@
 Revision history for Time-Piece
 
+1.38  2025-10-18
+        - Doc updates
+        - Fix Windows-2025 crash with %P
+        - XS clean up
+        - strptime: %z and %Z fixes (GH52,32,73,RT93095,168828)
+
 1.3701  2025-08-25
         - Test fixes on Alpine and locales without AM/PM (GH76)
 

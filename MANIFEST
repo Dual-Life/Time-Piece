@@ -19,5 +19,7 @@ t/08truncate.t
 t/09locales.t
 t/10overload.t
 t/11strptime_defaults.t
+t/12strptime_timezones.t
+t/13date_arithmetic_edge_cases.t
 t/99legacy.t
 t/lib/Time/Piece/Twin.pm
