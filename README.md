@@ -294,17 +294,17 @@ a list of your locale's day and month names:
     Time::Piece->use_locale();
 
     # Now strptime can parse names in your system locale
-    my $t = Time::Piece->strptime("15 März 2024", "%d %B %Y");
+    my $t = Time::Piece->strptime("15 Marzo 2024", "%d %B %Y");
 
 **Note:** This is a global change affecting all Time::Piece instances.
 
 You can also override the day/month names manually:
 
-    my @days = qw( Dimanche Lundi Mardi Mercredi Jeudi Vendredi Samedi );
-    my $french_day = localtime->day(@days);
+    my @days = qw( Domingo Lunes Martes Miercoles Jueves Viernes Sabado );
+    my $spanish_day = localtime->day(@days);
 
-    my @months = qw( Janvier Février Mars Avril Mai Juin
-                     Juillet Août Septembre Octobre Novembre Décembre );
+    my @months = qw( Enero Febrero Marzo Abril Mayo Junio
+                     Julio Agosto Septiembre Octubre Noviembre Diciembre );
     print localtime->month(@months);
 
 Set globally with:
