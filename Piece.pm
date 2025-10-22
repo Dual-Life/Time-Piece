@@ -1266,6 +1266,9 @@ To get local time objects, you can:
     my $local = localtime();
     Time::Piece->strptime($string, $format, { defaults => $local })
 
+The islocal and defaults options were added in version 1.37; the instance
+method can be used for compatibility with previous versions.
+
 =head3 Locale Considerations
 
 By default, C<strptime> only parses English day and month names, while
