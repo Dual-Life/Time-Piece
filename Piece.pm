@@ -1226,6 +1226,9 @@ To get local time objects, you can:
     my $local = localtime();
     Time::Piece->strptime($string, $format, { defaults => $local })
 
+The islocal and defaults options were added in version 1.37; the instance
+method can be used for compatibility with previous versions.
+
 =head2 Timezone Parsing with %z and %Z
 
 Time::Piece's C<strptime()> function has some limited support for parsing timezone
