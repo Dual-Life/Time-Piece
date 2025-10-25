@@ -1,5 +1,13 @@
 Revision history for Time-Piece
 
+1.39  2025-10-24
+        - strptime: allow year < 1900 (GH56)
+        - add add_days() (GH65)
+        - strptime(): More %z formats (GH74)
+        - Test failures in 11strptime_defaults.t (GH81)
+        - XS cleanup (GH80)
+        - Remove parse()
+
 1.38  2025-10-18
         - Doc updates
         - Fix Windows-2025 crash with %P
