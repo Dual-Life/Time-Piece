@@ -102,24 +102,6 @@ sub new {
     return bless $self, ref($class) || $class;
 }
 
-sub parse {
-    my $proto = shift;
-    my $class = ref($proto) || $proto;
-    my @components;
-
-    warnings::warnif("deprecated", 
-        "parse() is deprecated, use strptime() instead.");
-
-    if (@_ > 1) {
-        @components = @_;
-    }
-    else {
-        @components = shift =~ /(\d+)$DATE_SEP(\d+)$DATE_SEP(\d+)(?:(?:T|\s+)(\d+)$TIME_SEP(\d+)(?:$TIME_SEP(\d+)))/;
-        @components = reverse(@components[0..5]);
-    }
-    return $class->new( timelocal(@components ));
-}
-
 sub _mktime {
     my ($class, $time, $islocal) = @_;
 
