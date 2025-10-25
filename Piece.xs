@@ -898,8 +898,10 @@ label:
 			if (*buf != '+') {
 				if (*buf == '-')
 					sign = -1;
-				else
+				else {
+					warn("%%z must contain '-' or '+'");
 					return NULL;
+				}
 			}
 
 			buf++;
@@ -910,10 +912,18 @@ label:
 					i += *buf - '0';
 					buf++;
 				} else if (len == 2) {
-					i *= 100;
-					break;
-				} else
+					/* Support ISO 8601 HH:MM format in addition to RFC 822 HHMM */
+					if (*buf == ':') {
+						buf++;
+						len++;
+					} else {
+						i *= 100;
+						break;
+					}
+				} else {
+					warn("%%z format mismatch");
 					return NULL;
+				}
 			}
 
 			/* Valid if between UTC+14 and UTC-12 and minutes <= 60 */
