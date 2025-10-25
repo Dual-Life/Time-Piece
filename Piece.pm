@@ -543,8 +543,10 @@ my $strftime_trans_map = {
     },
     'V' => sub {
         my ( $format, $time ) = @_;
-        my $week = sprintf( "%02d", $time->week() );
-        $format =~ s/%V/$week/ if $IS_WIN32;
+        if ($IS_WIN32) {
+            my $week = sprintf( "%02d", $time->week() );
+            $format =~ s/%V/$week/;
+        }
         return $format;
     },
     'x' => sub {
