@@ -232,40 +232,6 @@ The default format string is `"%a, %d %b %Y %H:%M:%S %Z"`, so these are equivale
     my $t1 = Time::Piece->strptime($string);
     my $t2 = Time::Piece->strptime($string, "%a, %d %b %Y %H:%M:%S %Z");
 
-## Handling Partial Dates
-
-When parsing incomplete date strings, you can provide defaults for missing
-components in several ways:
-
-**Array Reference** - Standard time components (as returned by localtime):
-
-    my @defaults = localtime();
-    my $t = Time::Piece->strptime("15 Mar", "%d %b",
-                                  { defaults => \@defaults });
-
-**Hash Reference** - Specify only needed components:
-
-    my $t = Time::Piece->strptime("15 Mar", "%d %b",
-                                  { defaults => {
-                                      year => 2023,
-                                      hour => 14,
-                                      min  => 30
-                                  } });
-
-Valid keys: `sec`, `min`, `hour`, `mday`, `mon`, `year`, `wday`, `yday`, `isdst`
-
-**Note**: For the `year` parameter numbers less than 1000 are treated as an
-offset from 1900. Whereas numbers larger than 1000 are treated as the actual year.
-
-**Time::Piece Object** - Uses all components from the object:
-
-    my $base = localtime();
-    my $t = Time::Piece->strptime("15 Mar", "%d %b",
-                                  { defaults => $base });
-
-**Note:** In all cases, parsed values always override defaults. Only missing
-components use default values.
-
 ## GMT vs Local Time
 
 By default, `strptime` returns GMT objects when called as a class method:
@@ -285,40 +251,6 @@ To get local time objects, you can:
     my $local = localtime();
     Time::Piece->strptime($string, $format, { defaults => $local })
 
-The islocal and defaults options were added in version 1.37; the instance
-method can be used for compatibility with previous versions.
-
-### Locale Considerations
-
-By default, `strptime` only parses English day and month names, while
-`strftime` uses your system locale. This can cause parsing failures for
-non-English dates.
-
-To parse localized dates, call `Time::Piece->use_locale()` to build
-a list of your locale's day and month names:
-
-    # Enable locale-aware parsing (global setting)
-    Time::Piece->use_locale();
-
-    # Now strptime can parse names in your system locale
-    my $t = Time::Piece->strptime("15 Marzo 2024", "%d %B %Y");
-
-**Note:** This is a global change affecting all Time::Piece instances.
-
-You can also override the day/month names manually:
-
-    my @days = qw( Domingo Lunes Martes Miercoles Jueves Viernes Sabado );
-    my $spanish_day = localtime->day(@days);
-
-    my @months = qw( Enero Febrero Marzo Abril Mayo Junio
-                     Julio Agosto Septiembre Octubre Noviembre Diciembre );
-    print localtime->month(@months);
-
-Set globally with:
-
-    Time::Piece::day_list(@days);
-    Time::Piece::mon_list(@months);
-
 ## Timezone Parsing with %z and %Z
 
 Time::Piece's `strptime()` function has some limited support for parsing timezone
@@ -329,7 +261,8 @@ Consider the current implementation somewhat "alpha" and in need of feedback.
 
 ### Numeric Offsets (%z)
 
-The `%z` specifier parses numeric timezone offsets (format: `+HHMM` or `-HHMM`):
+The `%z` specifier parses numeric timezone offsets
+(format: `[+-]HHMM`, `[+-]HH:MM`, or `[+-]HH`):
 
     my $t = Time::Piece->strptime("2024-01-15 15:30:00 +0500",
                                   "%Y-%m-%d %H:%M:%S %z");
@@ -364,8 +297,79 @@ Other timezone names are parsed **but ignored**:
                                    "%Y-%m-%d %H:%M:%S %Z");
     print $t2->hour;  # prints 10 (PST ignored - no adjustment)
 
+    # Parse and convert to local timezone
+    my $t3 = Time::Piece->strptime("2024-01-15 15:30:00 UTC",
+                                  "%Y-%m-%d %H:%M:%S %Z",
+                                  { islocal => 1 });
+    print $t3->hour;  # prints 10:30 UTC converted to your local timezone
+
 **Note:** Full timezone name support is not currently implemented. For reliable
 timezone handling beyond GMT/UTC, consider using the [DateTime](https://metacpan.org/pod/DateTime) module.
+
+## Handling Partial Dates
+
+When parsing incomplete date strings, you can provide defaults for missing
+components in several ways:
+
+**Array Reference** - Standard time components (as returned by localtime):
+
+    my @defaults = localtime();
+    my $t = Time::Piece->strptime("15 Mar", "%d %b",
+                                  { defaults => \@defaults });
+
+**Hash Reference** - Specify only needed components:
+
+    my $t = Time::Piece->strptime("15 Mar", "%d %b",
+                                  { defaults => {
+                                      year => 2023,
+                                      hour => 14,
+                                      min  => 30
+                                  } });
+
+Valid keys: `sec`, `min`, `hour`, `mday`, `mon`, `year`, `wday`, `yday`, `isdst`
+
+**Note**: For the `year` parameter numbers less than 1000 are treated as an
+offset from 1900. Whereas numbers larger than 1000 are treated as the actual year.
+
+**Time::Piece Object** - Uses all components from the object:
+
+    my $base = localtime();
+    my $t = Time::Piece->strptime("15 Mar", "%d %b",
+                                  { defaults => $base });
+
+**Note:** In all cases, parsed values always override defaults. Only missing
+components use default values.
+
+## Locale Considerations
+
+By default, `strptime` only parses English day and month names, while
+`strftime` uses your system locale. This can cause parsing failures for
+non-English dates.
+
+To parse localized dates, call `Time::Piece->use_locale()` to build
+a list of your locale's day and month names:
+
+    # Enable locale-aware parsing (global setting)
+    Time::Piece->use_locale();
+
+    # Now strptime can parse names in your system locale
+    my $t = Time::Piece->strptime("15 Marzo 2024", "%d %B %Y");
+
+**Note:** This is a global change affecting all Time::Piece instances.
+
+You can also override the day/month names manually:
+
+    my @days = qw( Domingo Lunes Martes Miercoles Jueves Viernes Sabado );
+    my $spanish_day = localtime->day(@days);
+
+    my @months = qw( Enero Febrero Marzo Abril Mayo Junio
+                     Julio Agosto Septiembre Octubre Noviembre Diciembre );
+    print localtime->month(@months);
+
+Set globally with:
+
+    Time::Piece::day_list(@days);
+    Time::Piece::mon_list(@months);
 
 # Global Overriding
 
