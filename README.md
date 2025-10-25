@@ -115,6 +115,9 @@ the actual offset including any DST adjustment.
 
     $t->is_leap_year        # true if it's a leap year
     $t->month_last_day      # 28-31
+    $t->add_days            # Add days
+    $t->add_months          # Add months
+    $t->add_years           # Add years
 
 ## Global Configuration
 
@@ -148,6 +151,7 @@ The following are valid ($t1 and $t2 are Time::Piece objects):
     $t1 - $t2; # returns Time::Seconds object
     $t1 - 42; # returns Time::Piece object
     $t1 + 533; # returns Time::Piece object
+    $t1->add_days(2); # returns Time::Piece object
 
 **Note:** All arithmetic uses epoch seconds (UTC). When daylight saving time
 (DST) changes occur:
