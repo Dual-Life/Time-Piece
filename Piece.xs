@@ -645,30 +645,42 @@ label:
 			AV* weekday_av = (AV*)SvRV(*weekday_sv);
 			AV* wday_av = (AV*)SvRV(*wday_sv);
 
+			/* Use longest-match to handle ambiguous prefixes
+				(e.g., "Cuma" vs "Cumartesi" in Turkish) */
+			int best_match = -1;
+			size_t best_len = 0;
+
 			for (i = 0; i <= av_len(weekday_av); i++) {
-				if (c == 'A') {
-					SV** day_sv = av_fetch(weekday_av, i, 0);
-					if (day_sv && SvPOK(*day_sv)) {
-						char* day_str = SvPV(*day_sv, len);
-						if (strncasecmp(buf, day_str, len) == 0)
-							break;
+				SV** day_sv;
+
+				/* Try full weekday name */
+				day_sv = av_fetch(weekday_av, i, 0);
+				if (day_sv && SvPOK(*day_sv)) {
+					char* day_str = SvPV(*day_sv, len);
+					if (len > best_len && strncasecmp(buf, day_str, len) == 0) {
+						best_match = i;
+						best_len = len;
 					}
-				} else {
-					SV** day_sv = av_fetch(wday_av, i, 0);
-					if (day_sv && SvPOK(*day_sv)) {
-						char* day_str = SvPV(*day_sv, len);
-						if (strncasecmp(buf, day_str, len) == 0)
-							break;
+				}
+
+				/* Try abbreviated weekday name */
+				day_sv = av_fetch(wday_av, i, 0);
+				if (day_sv && SvPOK(*day_sv)) {
+					char* day_str = SvPV(*day_sv, len);
+					if (len > best_len && strncasecmp(buf, day_str, len) == 0) {
+						best_match = i;
+						best_len = len;
 					}
 				}
 			}
-			if (i > av_len(weekday_av)) {
+
+			if (best_match < 0) {
 				warn("Failed parsing weekday names");
 				return NULL;
 			}
 
-			tm->tm_wday = i;
-			buf += len;
+			tm->tm_wday = best_match;
+			buf += best_len;
 			}
 			break;
 
@@ -758,31 +770,42 @@ label:
 			AV* month_av = (AV*)SvRV(*month_sv);
 			AV* mon_av = (AV*)SvRV(*mon_sv);
 
-			for (i = 0; i <= av_len(month_av); i++) {
+			/* Use longest-match to handle ambiguous prefixes
+				(e.g., "1" vs "10" in Japanese) */
+			int best_match = -1;
+			size_t best_len = 0;
 
-				if (c == 'B') {
-					SV** month_sv_item = av_fetch(month_av, i, 0);
-					if (month_sv_item && SvPOK(*month_sv_item)) {
-						char* month_str = SvPV(*month_sv_item, len);
-						if (strncasecmp(buf, month_str, len) == 0)
-							break;
+			for (i = 0; i <= av_len(month_av); i++) {
+				SV** month_sv_item;
+
+				/* Try full month name */
+				month_sv_item = av_fetch(month_av, i, 0);
+				if (month_sv_item && SvPOK(*month_sv_item)) {
+					char* month_str = SvPV(*month_sv_item, len);
+					if (len > best_len && strncasecmp(buf, month_str, len) == 0) {
+						best_match = i;
+						best_len = len;
 					}
-				} else {
-					SV** mon_sv_item = av_fetch(mon_av, i, 0);
-					if (mon_sv_item && SvPOK(*mon_sv_item)) {
-						char* mon_str = SvPV(*mon_sv_item, len);
-						if (strncasecmp(buf, mon_str, len) == 0)
-							break;
+				}
+
+				/* Try abbreviated month name */
+				month_sv_item = av_fetch(mon_av, i, 0);
+				if (month_sv_item && SvPOK(*month_sv_item)) {
+					char* month_str = SvPV(*month_sv_item, len);
+					if (len > best_len && strncasecmp(buf, month_str, len) == 0) {
+						best_match = i;
+						best_len = len;
 					}
 				}
 			}
-			if (i > av_len(month_av)) {
+
+			if (best_match < 0) {
 				warn("Failed parsing month name");
 				return NULL;
 			}
 
-			tm->tm_mon = i;
-			buf += len;
+			tm->tm_mon = best_match;
+			buf += best_len;
 			}
 			break;
 
