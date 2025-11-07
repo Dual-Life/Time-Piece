@@ -121,10 +121,12 @@ the actual offset including any DST adjustment.
 
 ## Global Configuration
 
-    $t->time_separator($s)  # set the default separator (default ":")
-    $t->date_separator($s)  # set the default separator (default "-")
-    $t->day_list(@days)     # set the default weekdays
-    $t->mon_list(@days)     # set the default months
+    $t->time_separator($s)     # set the default separator (default ":")
+    $t->date_separator($s)     # set the default separator (default "-")
+    $t->day_list(@days)        # set the names used by wdayname()
+    $t->mon_list(@months)      # set the names used by month()
+    $t->fullday_list(@days)    # set the names used by fullday()
+    $t->fullmon_list(@months)  # set the names used by fullmonth()
 
 ## Parsing
 
@@ -362,17 +364,29 @@ a list of your locale's day and month names:
 
 You can also override the day/month names manually:
 
-    my @days = qw( Domingo Lunes Martes Miercoles Jueves Viernes Sabado );
+    # Abbreviated day names
+    my @days = qw( Dom Lun Mar Mie Jue Vie Sab );
     my $spanish_day = localtime->day(@days);
 
-    my @months = qw( Enero Febrero Marzo Abril Mayo Junio
-                     Julio Agosto Septiembre Octubre Noviembre Diciembre );
+    # Full day names
+    my @fulldays = qw( Domingo Lunes Martes Miercoles Jueves Viernes Sabado );
+    my $spanish_fullday = localtime->fullday(@fulldays);
+
+    # Abbreviated month names
+    my @months = qw( Ene Feb Mar Abr May Jun Jul Ago Sep Oct Nov Dic );
     print localtime->month(@months);
+
+    # Full month names
+    my @fullmonths = qw( Enero Febrero Marzo Abril Mayo Junio
+                         Julio Agosto Septiembre Octubre Noviembre Diciembre );
+    print localtime->fullmonth(@fullmonths);
 
 Set globally with:
 
     Time::Piece::day_list(@days);
     Time::Piece::mon_list(@months);
+    Time::Piece::fullday_list(@fulldays);
+    Time::Piece::fullmon_list(@fullmonths);
 
 # Global Overriding
 

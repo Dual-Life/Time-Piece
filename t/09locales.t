@@ -29,8 +29,51 @@ $t->day_list(@frdays);
 cmp_ok( $t->day,     'eq', &Time::Piece::_locale()->{wday}[ $t->_wday ] );
 cmp_ok( $t->fullday, 'eq', &Time::Piece::_locale()->{weekday}[ $t->_wday ] );
 
+# Test fullday_list() method
+my @original_fulldays = $t->fullday_list();
+is( scalar(@original_fulldays), 7, 'fullday_list() returns 7 days' );
 
-#load local locale
+my @custom_fulldays =
+  qw( Domingo Lunes Martes Miercoles Jueves Viernes Sabado );
+$t->fullday_list(@custom_fulldays);
+cmp_ok(
+    $t->fullday, 'eq',
+    &Time::Piece::_locale()->{weekday}[ $t->_wday ],
+    'fullday() returns custom full day name from locale'
+);
+cmp_ok(
+    $t->fullday, 'eq',
+    $custom_fulldays[ $t->_wday ],
+    'fullday() returns correct custom full day name'
+);
+
+# Test fullmon_list() method
+my @original_fullmons = $t->fullmon_list();
+is( scalar(@original_fullmons), 12, 'fullmon_list() returns 12 months' );
+
+my @custom_fullmons =
+  qw( Enero Febrero Marzo Abril Mayo Junio Julio Agosto Septiembre Octubre Noviembre Diciembre );
+$t->fullmon_list(@custom_fullmons);
+cmp_ok(
+    $t->fullmonth, 'eq',
+    &Time::Piece::_locale()->{month}[ $t->_mon ],
+    'fullmonth() returns custom full month name from locale'
+);
+cmp_ok(
+    $t->fullmonth, 'eq',
+    $custom_fullmons[ $t->_mon ],
+    'fullmonth() returns correct custom full month name'
+);
+
+# Test strptime with custom full day and month names
+# Using 2013-07-09 which is a Tuesday (Martes) in July (Julio)
+my $parsed_both = $t->strptime( 'Martes, 9 Julio 2013', '%A, %d %B %Y' );
+cmp_ok( $parsed_both->_wday, '==', 2, 'strptime parses custom full day name' );
+cmp_ok( $parsed_both->_mon, '==', 6, 'strptime parses custom full month name' );
+cmp_ok( $parsed_both->mday, '==', 9, 'strptime parses day of month' );
+cmp_ok( $parsed_both->year, '==', 2013, 'strptime parses year' );
+
+#load local locale from system
 Time::Piece->use_locale();
 
 #test reverse parsing
@@ -122,4 +165,4 @@ for my $time (
 
 }
 
-done_testing(234);
+done_testing(244);
