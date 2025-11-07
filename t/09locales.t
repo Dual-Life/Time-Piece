@@ -129,7 +129,7 @@ for my $time (
         eval { $parsed = $t->strptime( $t_str, $strp_format ); };
 
         if ($@) {
-            warn("strptime failed with time $t_str and format $strp_format");
+            warn("gmtime strptime failed with time $t_str and format $strp_format");
             warn($@);
             next;
         }
@@ -141,9 +141,9 @@ for my $time (
 
 for my $time (
     time(),        # Now, whenever that might be
-    1451606400,    # 2016-01-01 00:00
-    1451653500,    # 2016-01-01 13:05
-    1449014400,    # 2015-12-02 00:00
+    1451606430,    # 2016-01-01 00:00:30
+    1451653530,    # 2016-01-01 13:05:30
+    1449014430,    # 2015-12-02 00:00:30
   )
 {
     my $t = localtime($time);
@@ -155,7 +155,7 @@ for my $time (
         eval { $parsed = $t->strptime( $t_str, $strp_format ); };
 
         if ($@) {
-            warn("strptime failed with time $t_str and format $strp_format");
+            warn("local strptime failed with time $t_str and format $strp_format");
             warn($@);
             next;
         }
