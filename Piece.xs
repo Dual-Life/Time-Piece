@@ -317,6 +317,26 @@ my_mini_mktime(struct tm *ptm)
     ptm->tm_wday = (jday + WEEKDAY_BIAS) % 7;
 }
 
+static struct tm
+safe_localtime(pTHX_ const time_t *tp)
+{
+    struct tm *result = localtime(tp);
+    if (!result) {
+        croak("localtime failed for invalid time value");
+    }
+    return *result;
+}
+
+static struct tm
+safe_gmtime(pTHX_ const time_t *tp)
+{
+    struct tm *result = gmtime(tp);
+    if (!result) {
+        croak("gmtime failed for invalid time value");
+    }
+    return *result;
+}
+
 #   if defined(WIN32) || (defined(__QNX__) && defined(__WATCOMC__))
 #       define strncasecmp(x,y,n) strnicmp(x,y,n)
 #   endif
@@ -848,7 +868,7 @@ label:
 			buf = cp;
 			Zero(&mytm, 1, struct tm);
 
-			mytm = *gmtime(&t);
+			mytm = safe_gmtime(aTHX_ &t);
 			*got_GMT = 1;
 
             tm->tm_sec    = mytm.tm_sec;
@@ -1038,9 +1058,9 @@ _strftime(fmt, epoch, islocal = 1)
         size_t len;
 
         if(islocal == 1)
-            mytm = *localtime(&epoch);
+            mytm = safe_localtime(aTHX_ &epoch);
         else
-            mytm = *gmtime(&epoch);
+            mytm = safe_gmtime(aTHX_ &epoch);
 
         len = strftime(tmpbuf, TP_BUF_SIZE, fmt, &mytm);
         /*
@@ -1163,7 +1183,7 @@ _strptime ( string, format, islocal, localization, defaults_ref )
        if (got_GMT == 1 && islocal == 1) {
            time_t t;
            t = my_timegm(&mytm);
-           mytm = *localtime(&t);
+           mytm = safe_localtime(aTHX_ &t);
        }
 
        return_11part_tm(aTHX_ SP, &mytm);
@@ -1176,7 +1196,7 @@ _mini_mktime(int sec, int min, int hour, int mday, int mon, int year)
        time_t t;
   PPCODE:
        t = 0;
-       mytm = *gmtime(&t);
+       mytm = safe_gmtime(aTHX_ &t);
 
        mytm.tm_sec = sec;
        mytm.tm_min = min;
@@ -1195,8 +1215,8 @@ _crt_localtime(time_t sec)
     PREINIT:
         struct tm mytm;
     PPCODE:
-        if(ix) mytm = *gmtime(&sec);
-        else mytm = *localtime(&sec);
+        if(ix) mytm = safe_gmtime(aTHX_ &sec);
+        else mytm = safe_localtime(aTHX_ &sec);
         /* Need to get: $s,$n,$h,$d,$m,$y */
 
         EXTEND(SP, 10);
@@ -1226,7 +1246,7 @@ _get_localization()
         char buf[TP_BUF_SIZE];
         size_t i;
         time_t t = 1325386800; /*1325386800 = Sun, 01 Jan 2012 03:00:00 GMT*/
-        struct tm mytm = *gmtime(&t);
+        struct tm mytm = safe_gmtime(aTHX_ &t);
      CODE:
 
         for(i = 0; i < 7; ++i){
