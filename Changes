@@ -1,5 +1,12 @@
 Revision history for Time-Piece
 
+1.40  2025-11-08
+        - strptime: locale parse fixes (GH86)
+        - Add fullmon_list() and fullday_list() (GH85)
+        - Fix null deref (GH47)
+        - Remove locale-dependent flags (GH71)
+        - Document flags for strftime/strptime (GH83)
+
 1.39  2025-10-24
         - strptime: allow year < 1900 (GH56)
         - add add_days() (GH65)

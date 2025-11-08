@@ -88,6 +88,24 @@ The following methods are available on the object:
                             # of the full POSIX extension)
     $t->strftime()          # "Tue, 29 Feb 2000 12:34:56 GMT"
 
+### strftime Format Flags
+
+The `strftime` method calls your system's native `strftime()` implementation,
+so the supported format flags and their behavior will depend on your platform.
+
+**Platform Variability:** Some format flags behave differently or may be missing
+entirely on certain platforms. The following flags are known to have
+platform-specific issues: `%e`, `%D`, `%F`, `%k`, `%l`, `%P`, `%r`, `%R`,
+`%s`, `%T`, `%u`, `%V`, `%z`, and `%Z`.
+
+To mitigate these differences, `Time::Piece` includes a special translation layer
+that attempts to unify behavior across platforms. For example, `%F` is not
+available on some Microsoft platforms, so it is automatically converted to
+`"%Y-%m-%d"` internally before calling the system's `strftime()`.
+
+For a complete list of format flags supported by your system, consult your
+platform's `strftime(3)` manual page (`man strftime` on Unix-like systems).
+
 ## Epoch and Calendar Calculations
 
     $t->epoch               # seconds since the epoch
@@ -121,10 +139,12 @@ the actual offset including any DST adjustment.
 
 ## Global Configuration
 
-    $t->time_separator($s)  # set the default separator (default ":")
-    $t->date_separator($s)  # set the default separator (default "-")
-    $t->day_list(@days)     # set the default weekdays
-    $t->mon_list(@days)     # set the default months
+    $t->time_separator($s)     # set the default separator (default ":")
+    $t->date_separator($s)     # set the default separator (default "-")
+    $t->day_list(@days)        # set the names used by wdayname()
+    $t->mon_list(@months)      # set the names used by month()
+    $t->fullday_list(@days)    # set the names used by fullday()
+    $t->fullmon_list(@months)  # set the names used by fullmonth()
 
 ## Parsing
 
@@ -231,6 +251,58 @@ The default format string is `"%a, %d %b %Y %H:%M:%S %Z"`, so these are equivale
 
     my $t1 = Time::Piece->strptime($string);
     my $t2 = Time::Piece->strptime($string, "%a, %d %b %Y %H:%M:%S %Z");
+
+## Supported Format Flags
+
+`Time::Piece` uses a custom `strptime()` implementation that supports the
+following format flags:
+
+    Flag  Description
+    ----  -----------
+    %%    Literal '%' character
+    %a    Abbreviated weekday name (Mon, Tue, etc.)
+    %A    Full weekday name (Monday, Tuesday, etc.)
+    %b    Abbreviated month name (Jan, Feb, etc.)
+    %B    Full month name (January, February, etc.)
+    %C    Century number (00-99)
+    %d    Day of month (01-31)
+    %D    Equivalent to %m/%d/%y
+    %e    Day of month ( 1-31, space-padded)
+    %F    Equivalent to %Y-%m-%d (ISO 8601 date format)
+    %h    Abbreviated month name (same as %b)
+    %H    Hour in 24-hour format (00-23)
+    %I    Hour in 12-hour format (01-12)
+    %j    Day of year (001-366)
+    %k    Hour in 24-hour format ( 0-23, space-padded)
+    %l    Hour in 12-hour format ( 1-12, space-padded)
+    %m    Month number (01-12)
+    %M    Minute (00-59)
+    %n    Any whitespace
+    %p    AM/PM indicator
+    %P    Alt AM/PM indicator
+    %r    Time in AM/PM format (%I:%M:%S %p, or %H:%M:%S if locale has no AM/PM)
+    %R    Equivalent to %H:%M
+    %s    Seconds since Unix epoch (1970-01-01 00:00:00 UTC)
+    %S    Second (00-60, allowing for leap seconds)
+    %t    Any whitespace (same as %n)
+    %T    Equivalent to %H:%M:%S
+    %u    Weekday as number (1-7, Monday = 1)
+    %w    Weekday as number (0-6, Sunday = 0)
+    %y    Year within century (00-99). Values 00-68 are 2000-2068, 69-99 are 1969-1999
+    %Y    Year with century (e.g., 2024)
+    %z    Timezone offset (+HHMM, -HHMM, +HH:MM, or -HH:MM)
+    %Z    Timezone name (only GMT and UTC recognized; others parsed but ignored)
+
+**Unsupported Locale Flags:** The format flags `%c`, `%x`, and `%X` are **not**
+supported as they are highly locale-dependent and have inconsistent formats
+across systems. However, you can construct equivalent formats using the individual
+flags listed above. For example, `%c` is typically equivalent to something like:
+
+    "%a %b %e %H:%M:%S %Y"   # e.g., "Tue Feb 29 12:34:56 2000"
+
+**Note:** `%U`, `%V`, and `%W` (week number formats) are parsed but not fully
+implemented in the strptime logic, as they require additional date components
+to calculate the actual date.
 
 ## GMT vs Local Time
 
@@ -362,17 +434,29 @@ a list of your locale's day and month names:
 
 You can also override the day/month names manually:
 
-    my @days = qw( Domingo Lunes Martes Miercoles Jueves Viernes Sabado );
+    # Abbreviated day names
+    my @days = qw( Dom Lun Mar Mie Jue Vie Sab );
     my $spanish_day = localtime->day(@days);
 
-    my @months = qw( Enero Febrero Marzo Abril Mayo Junio
-                     Julio Agosto Septiembre Octubre Noviembre Diciembre );
+    # Full day names
+    my @fulldays = qw( Domingo Lunes Martes Miercoles Jueves Viernes Sabado );
+    my $spanish_fullday = localtime->fullday(@fulldays);
+
+    # Abbreviated month names
+    my @months = qw( Ene Feb Mar Abr May Jun Jul Ago Sep Oct Nov Dic );
     print localtime->month(@months);
+
+    # Full month names
+    my @fullmonths = qw( Enero Febrero Marzo Abril Mayo Junio
+                         Julio Agosto Septiembre Octubre Noviembre Diciembre );
+    print localtime->fullmonth(@fullmonths);
 
 Set globally with:
 
     Time::Piece::day_list(@days);
     Time::Piece::mon_list(@months);
+    Time::Piece::fullday_list(@fulldays);
+    Time::Piece::fullmon_list(@fullmonths);
 
 # Global Overriding
 
