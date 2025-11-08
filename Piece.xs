@@ -444,14 +444,6 @@ label:
 			tm->tm_year = i * 100 - 1900;
 			break;
 
-		case 'c':
-			/* NOTE: c_fmt is intentionally ignored */
-
-			buf = _strptime(aTHX_ buf, "%a %d %b %Y %I:%M:%S %p %Z", tm, got_GMT, locales);
-			if (buf == 0)
-				return NULL;
-			break;
-
 		case 'D':
 			buf = _strptime(aTHX_ buf, "%m/%d/%y", tm, got_GMT, locales);
 			if (buf == 0)
@@ -505,18 +497,6 @@ label:
 		
 		case 'T':
 			buf = _strptime(aTHX_ buf, "%H:%M:%S", tm, got_GMT, locales);
-			if (buf == 0)
-				return NULL;
-			break;
-
-		case 'X':
-			buf = _strptime(aTHX_ buf, "%I:%M:%S %p", tm, got_GMT, locales);
-			if (buf == 0)
-				return NULL;
-			break;
-
-		case 'x':
-			buf = _strptime(aTHX_ buf, "%a %d %b %Y", tm, got_GMT, locales);
 			if (buf == 0)
 				return NULL;
 			break;

@@ -462,16 +462,6 @@ sub month_last_day {
 }
 
 my $strftime_trans_map = {
-    'c' => sub {
-        my ( $format ) = @_;
-        if($LOCALE->{PM} && $LOCALE->{AM}){
-            $format =~ s/%c/%a %d %b %Y %I:%M:%S %p/;
-        }
-        else{
-            $format =~ s/%c/%a %d %b %Y %H:%M:%S/;
-        }
-        return $format;
-    },
     'e' => sub {
         my ( $format, $time ) = @_;
         my $day = sprintf( "%2d", $time->[c_mday] );
@@ -546,21 +536,6 @@ my $strftime_trans_map = {
         if ($IS_WIN32) {
             my $week = sprintf( "%02d", $time->week() );
             $format =~ s/%V/$week/;
-        }
-        return $format;
-    },
-    'x' => sub {
-        my ( $format ) = @_;
-        $format =~ s/%x/%a %d %b %Y/;
-        return $format;
-    },
-    'X' => sub {
-        my ( $format ) = @_;
-        if($LOCALE->{PM} && $LOCALE->{AM}){
-            $format =~ s/%X/%I:%M:%S %p/;
-        }
-        else{
-            $format =~ s/%X/%H:%M:%S/;
         }
         return $format;
     },
