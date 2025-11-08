@@ -1043,6 +1043,24 @@ The following methods are available on the object:
                             # of the full POSIX extension)
     $t->strftime()          # "Tue, 29 Feb 2000 12:34:56 GMT"
 
+=head3 strftime Format Flags
+
+The C<strftime> method calls your system's native C<strftime()> implementation,
+so the supported format flags and their behavior will depend on your platform.
+
+B<Platform Variability:> Some format flags behave differently or may be missing
+entirely on certain platforms. The following flags are known to have
+platform-specific issues: C<%e>, C<%D>, C<%F>, C<%k>, C<%l>, C<%P>, C<%r>, C<%R>,
+C<%s>, C<%T>, C<%u>, C<%V>, C<%z>, and C<%Z>.
+
+To mitigate these differences, C<Time::Piece> includes a special translation layer
+that attempts to unify behavior across platforms. For example, C<%F> is not
+available on some Microsoft platforms, so it is automatically converted to
+C<"%Y-%m-%d"> internally before calling the system's C<strftime()>.
+
+For a complete list of format flags supported by your system, consult your
+platform's C<strftime(3)> manual page (C<man strftime> on Unix-like systems).
+
 =head2 Epoch and Calendar Calculations
 
     $t->epoch               # seconds since the epoch
@@ -1205,6 +1223,58 @@ The default format string is C<"%a, %d %b %Y %H:%M:%S %Z">, so these are equival
 
     my $t1 = Time::Piece->strptime($string);
     my $t2 = Time::Piece->strptime($string, "%a, %d %b %Y %H:%M:%S %Z");
+
+=head2 Supported Format Flags
+
+C<Time::Piece> uses a custom C<strptime()> implementation that supports the
+following format flags:
+
+    Flag  Description
+    ----  -----------
+    %%    Literal '%' character
+    %a    Abbreviated weekday name (Mon, Tue, etc.)
+    %A    Full weekday name (Monday, Tuesday, etc.)
+    %b    Abbreviated month name (Jan, Feb, etc.)
+    %B    Full month name (January, February, etc.)
+    %C    Century number (00-99)
+    %d    Day of month (01-31)
+    %D    Equivalent to %m/%d/%y
+    %e    Day of month ( 1-31, space-padded)
+    %F    Equivalent to %Y-%m-%d (ISO 8601 date format)
+    %h    Abbreviated month name (same as %b)
+    %H    Hour in 24-hour format (00-23)
+    %I    Hour in 12-hour format (01-12)
+    %j    Day of year (001-366)
+    %k    Hour in 24-hour format ( 0-23, space-padded)
+    %l    Hour in 12-hour format ( 1-12, space-padded)
+    %m    Month number (01-12)
+    %M    Minute (00-59)
+    %n    Any whitespace
+    %p    AM/PM indicator
+    %P    Alt AM/PM indicator
+    %r    Time in AM/PM format (%I:%M:%S %p, or %H:%M:%S if locale has no AM/PM)
+    %R    Equivalent to %H:%M
+    %s    Seconds since Unix epoch (1970-01-01 00:00:00 UTC)
+    %S    Second (00-60, allowing for leap seconds)
+    %t    Any whitespace (same as %n)
+    %T    Equivalent to %H:%M:%S
+    %u    Weekday as number (1-7, Monday = 1)
+    %w    Weekday as number (0-6, Sunday = 0)
+    %y    Year within century (00-99). Values 00-68 are 2000-2068, 69-99 are 1969-1999
+    %Y    Year with century (e.g., 2024)
+    %z    Timezone offset (+HHMM, -HHMM, +HH:MM, or -HH:MM)
+    %Z    Timezone name (only GMT and UTC recognized; others parsed but ignored)
+
+B<Unsupported Locale Flags:> The format flags C<%c>, C<%x>, and C<%X> are B<not>
+supported as they are highly locale-dependent and have inconsistent formats
+across systems. However, you can construct equivalent formats using the individual
+flags listed above. For example, C<%c> is typically equivalent to something like:
+
+    "%a %b %e %H:%M:%S %Y"   # e.g., "Tue Feb 29 12:34:56 2000"
+
+B<Note:> C<%U>, C<%V>, and C<%W> (week number formats) are parsed but not fully
+implemented in the strptime logic, as they require additional date components
+to calculate the actual date.
 
 =head2 GMT vs Local Time
 
