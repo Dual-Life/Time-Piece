@@ -268,6 +268,7 @@ following format flags:
     %d    Day of month (01-31)
     %D    Equivalent to %m/%d/%y
     %e    Day of month ( 1-31, space-padded)
+    %f    Fractional seconds as microseconds (up to 6 digits, parsed but ignored)
     %F    Equivalent to %Y-%m-%d (ISO 8601 date format)
     %h    Abbreviated month name (same as %b)
     %H    Hour in 24-hour format (00-23)
@@ -303,6 +304,10 @@ flags listed above. For example, `%c` is typically equivalent to something like:
 **Note:** `%U`, `%V`, and `%W` (week number formats) are parsed but not fully
 implemented in the strptime logic, as they require additional date components
 to calculate the actual date.
+
+**Note:** `%f` (fractional seconds) is only supported in `strptime` for parsing.
+It is not available in `strftime` for output formatting, as Time::Piece uses
+epoch seconds which do not store subsecond precision.
 
 ## GMT vs Local Time
 

@@ -235,3 +235,16 @@ $s = Time::Seconds->new(130);
 is($s->pretty, '2 minutes, 10 seconds');
 $s = Time::Seconds->new(7330);
 is($s->pretty, '2 hours, 2 minutes, 10 seconds', "Format correct");
+
+my $t_frac = Time::Piece->strptime("2000-02-29T13:34:56.123", '%Y-%m-%dT%H:%M:%S.%f');
+cmp_ok($t_frac->epoch, '==', 951831296, "Fractional seconds with 3 digits parsed correctly");
+cmp_ok($t_frac->sec, '==', 56, "Seconds correct with 3 digit fractional");
+
+$t_frac = Time::Piece->strptime("2000-02-29T13:34:56.123456", '%Y-%m-%dT%H:%M:%S.%f');
+cmp_ok($t_frac->epoch, '==', 951831296, "Fractional seconds with 6 digits parsed correctly");
+cmp_ok($t_frac->sec, '==', 56, "Seconds correct with 6 digit fractional");
+
+$t_frac = Time::Piece->strptime("2000-02-29T13:34:56.1Z", '%Y-%m-%dT%H:%M:%S.%fZ');
+cmp_ok($t_frac->epoch, '==', 951831296, "Fractional seconds with 1 digit parsed correctly");
+cmp_ok($t_frac->sec, '==', 56, "Seconds correct with 1 digit fractional");
+
