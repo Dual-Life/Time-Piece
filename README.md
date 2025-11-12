@@ -118,6 +118,8 @@ platform's `strftime(3)` manual page (`man strftime` on Unix-like systems).
 
     $t->tzoffset            # timezone offset in a Time::Seconds object
     $t->isdst               # also available as $t->daylight_savings
+    $t->to_gmtime           # convert to GMT, preserving the epoch
+    $t->to_localtime        # convert to local time, preserving the epoch
 
 The `isdst` method returns:
 
@@ -128,6 +130,10 @@ The `isdst` method returns:
 The `tzoffset` method returns the offset from UTC as a Time::Seconds object.
 For GMT/UTC times, this always returns 0. For local times, it calculates
 the actual offset including any DST adjustment.
+
+The `to_gmtime` and `to_localtime` methods convert between timezone contexts
+while preserving the same moment in time (epoch). They always return a new
+Time::Piece object.
 
 ## Utility Methods
 

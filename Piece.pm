@@ -66,6 +66,13 @@ sub gmtime {
     $class->_mktime($time, 0);
 }
 
+sub to_gmtime {
+    &gmtime( $_[0]->epoch );
+}
+
+sub to_localtime {
+    &localtime( $_[0]->epoch );
+}
 
 # Check if the supplied param is either a normal array (as returned from
 # localtime in list context) or a Time::Piece-like wrapper around one.
@@ -1073,6 +1080,8 @@ platform's C<strftime(3)> manual page (C<man strftime> on Unix-like systems).
 
     $t->tzoffset            # timezone offset in a Time::Seconds object
     $t->isdst               # also available as $t->daylight_savings
+    $t->to_gmtime           # convert to GMT, preserving the epoch
+    $t->to_localtime        # convert to local time, preserving the epoch
 
 The C<isdst> method returns:
 
@@ -1089,6 +1098,10 @@ The C<isdst> method returns:
 The C<tzoffset> method returns the offset from UTC as a Time::Seconds object.
 For GMT/UTC times, this always returns 0. For local times, it calculates
 the actual offset including any DST adjustment.
+
+The C<to_gmtime> and C<to_localtime> methods convert between timezone contexts
+while preserving the same moment in time (epoch). They always return a new
+Time::Piece object.
 
 =head2 Utility Methods
 
