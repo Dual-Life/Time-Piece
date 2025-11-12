@@ -1,5 +1,9 @@
 Revision history for Time-Piece
 
+1.41  2025-11-12
+        - strptime: parse micro seconds (RT165677, RT133599)
+        - add to_gmtime and to_localtime (RT113979)
+
 1.40  2025-11-08
         - strptime: locale parse fixes (GH86)
         - Add fullmon_list() and fullday_list() (GH85)
